@@ -1,0 +1,191 @@
+'use strict'
+
+const plugin = require('../')
+const expect = require('expect')
+const path   = require('path')
+const fs     = require('fs')
+
+function concat (name, subdir) {
+  let file = path.join(__dirname, subdir || 'expected', name)
+
+  file = file.replace(/\\/g, '/')
+  if (!path.extname(file)) file += '.js'
+  return file
+}
+
+process.chdir(__dirname)
+
+function generate (file, opts) {
+  let infile = concat(file, 'fixtures')
+  let result = plugin(opts).load(infile)
+
+  if (result != null && typeof result == 'string') {
+    result = { code: result }
+  }
+  return result
+}
+
+function testFile (file, opts, save) {
+  let expected = fs.readFileSync(concat(file), 'utf8')
+  let code = generate(file, opts).code
+
+  if (save) {
+    // eslint-disable-next-line no-console
+    console.error('------------------\n${ code }------------------\n')
+    fs.writeFileSync(concat(file + '_out.js'), code || '')
+  }
+  expect(code).toBe(expected)
+}
+
+function testStr (file, expected, opts) {
+  let code = generate(file, opts).code
+
+  expect(code).toBe(expected)
+}
+
+describe('rollup-plugin-jscc', () => {
+
+  it('by default keep some comments', () => {
+    testFile('defaults')
+  })
+
+  it('predefined variable `__FILE` is the relative path of the current file', () => {
+    testFile('file-var', {
+      comments: ['some', /^\/[\/*]!/]
+    })
+  })
+
+  it('allows to define custom variables in the `values` property of options', () => {
+    testFile('custom-vars', {
+      values: {
+        __ZERO: 0,
+        __MYBOOL: false,
+        __MYSTRING: 'foo',
+        __INFINITY: 1 / 0,
+        __NAN: parseInt('@', 10),
+        __NULL: null,
+        __UNDEF: undefined
+      }
+    })
+  })
+
+  it('do not touch current indentation of non-empty lines', () => {
+    testFile('first-line-indented')
+  })
+
+  it('support conditional comments with the `#if __VAR` syntax', () => {
+    testStr('if-cc-directive', 'true\n', {
+      values: { __TRUE: true }
+    })
+  })
+
+  it('has fine support for empty lines with `maxEmptyLines`', () => {
+    testStr('empty-lines-top', 'x')
+    testStr('empty-lines-bottom', 'x\n')
+    testStr('empty-lines-top', '\nx', { maxEmptyLines: 1 })
+    testStr('empty-lines-bottom', 'x\n\n', { maxEmptyLines: 1 })
+    testStr('empty-lines-top', '\n\n\nx', { maxEmptyLines: 3 })
+    testStr('empty-lines-bottom', 'x\n\n\n\n', { maxEmptyLines: 3 })
+  })
+
+  it('can leave all the lines setting `maxEmptyLines` = -1', () => {
+    let expected = fs.readFileSync(concat('empty-lines-top', 'fixtures'), 'utf8')
+    testStr('empty-lines-top', expected, { maxEmptyLines: -1 })
+
+    expected = fs.readFileSync(concat('empty-lines-bottom', 'fixtures'), 'utf8')
+    testStr('empty-lines-bottom', expected, { maxEmptyLines: -1 })
+  })
+})
+
+describe('Compilation variables', () => {
+  it('can be defined within the code with `#set`', () => {
+    testStr('var-inline-var', 'true\nfoo\n')
+  })
+  it('can be defined within the code with expressions', () => {
+    testStr('var-inline-expr', 'true\nfoo\n')
+  })
+  it('can be used for simple substitution in the code', () => {
+    testStr('var-code-replace', 'true==1\n"foo"\n')
+  })
+  it('defaults to `undefined` if no value is given', () => {
+    testStr('var-default-value', 'true\n')
+  })
+  it('`#unset` removes defined variables', () => {
+    testStr('var-unset', 'true\n', { values: { __FOO: true }})
+  })
+  it('syntax errors in expressions throws during the evaluation', () => {
+    expect(() => { generate('var-eval-error') }).toThrow()
+  })
+  it('undefined vars are replaced with `undefined` in the evaluation', () => {
+    testStr('var-eval-undefined', 'true\n')
+  })
+  it('other runtime errors throws (like accesing props of undefined)', () => {
+    expect(() => { generate('var-eval-prop-undef') }).toThrow()
+  })
+})
+
+describe('Conditional compilation', () => {
+  it('supports `#else`', () => {
+    testStr('cc-else', 'true\n')
+  })
+  it('and the `#elif` directive', () => {
+    testStr('cc-elif', 'true\n')
+  })
+  it('have `#ifset` for testing variable existence (even undefined values)', () => {
+    testStr('cc-ifset', 'true\n')
+  })
+  it('and `#ifnset` for testing not defined variables', () => {
+    testStr('cc-ifnset', 'true\n')
+  })
+  it('blocks can be nested', () => {
+    testStr('cc-nested', 'true\ntrue\ntrue\n')
+  })
+  it('you can throw an exception with custom message through `#error`', () => {
+    expect(() => { generate('cc-error') }).toThrow(/boom!/)
+  })
+  it('unclosed conditional blocks throws an exception', () => {
+    expect(() => { generate('cc-unclosed') }).toThrow()
+  })
+  it('unbalanced blocks throws', () => {
+    expect(() => { generate('cc-unbalanced') }).toThrow()
+  })
+  it('using multiline comments `/**/` allows hide content to linters', () => {
+    testFile('cc-hide-content')
+  })
+})
+
+describe('SourceMap support', () => {
+
+  let rollup = require('rollup').rollup
+
+  it('test bundle generated by rollup w/inlined sourcemap', () => {
+    return rollup({
+      entry: concat('bundle-src.js', 'maps'),
+      sourceMap: true,
+      plugins: [
+        plugin()
+      ]
+    }).then(function (bundle) {
+      let result = bundle.generate({
+        format: 'iife',
+        indent: true,
+        moduleName: 'jspp',
+        sourceMap: 'inline',
+        sourceMapFile: 'maps/bundle.js', // generates sorce filename w/o path
+        banner: '/*\n plugin version 1.0\n*/',
+        footer: '/* follow me on Twitter! @amarcruz */'
+      })
+      let code = result.code + '\n//# source' + 'MappingURL=' + result.map.toUrl()
+
+      /*
+        If you modified the source in maps/bundle-src.js, you
+        need to write the bundle and test it in the browser again.
+      */
+      //console.log('\t--- writing bundle with inlined sourceMap...')
+      //fs.writeFileSync(concat('bundle', 'maps'), code, 'utf8')
+
+      let expected = fs.readFileSync(concat('bundle', 'maps'), 'utf8')
+      expect(code).toBe(expected, 'Genereted code is incorrect!')
+    })
+  })
+})

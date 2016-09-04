@@ -1,0 +1,1 @@
+//#set __FOO __FOO.foo.bar
