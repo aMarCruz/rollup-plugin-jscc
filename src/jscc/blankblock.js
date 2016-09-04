@@ -17,6 +17,7 @@ export default function blankBlock (block) {
   return block.replace(/[^\n]+/g, m => {
     let len = m.length
     let str = space150
+
     while (str.length < len) str += space150
     return str.slice(0, len)
   })
