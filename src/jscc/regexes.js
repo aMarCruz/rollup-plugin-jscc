@@ -3,6 +3,7 @@
  *
  * Shared regexes
  */
+/* eslint-disable max-len */
 
 export default {
   // Multi-line comment
@@ -12,7 +13,7 @@ export default {
   // Quoted strings, take care about embedded eols
   STRINGS:  /"[^"\n\\]*(?:\\[\S\s][^"\n\\]*)*"|'[^'\n\\]*(?:\\[\S\s][^'\n\\]*)*'|`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g,
   // Allows skip division operators to detect non-regex slash -- $1: the slash
-  DIVISOR:  /(?:\breturn\s+|(?:[$\w\)\]]|\+\+|--)\s*(\/)(?![*\/]))/g,
+  DIVISOR:  /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|\/>|(?:[$\w\)\]]|\+\+|--)\s*(\/)(?![*\/]))/g,
   // Matches regexes -- $1 last slash of the regex
   REGEXES:  /\/(?=[^*\/])[^[/\\]*(?:(?:\[(?:\\.|[^\]\\]*)*\]|\\.)[^[/\\]*)*?(\/)[gim]*/g,
 
@@ -34,7 +35,11 @@ export default {
 
   // for matching all vars inside code
   reVarList (values) {
-    let list = Object.keys(values).map(v => v.slice(2)).join('|')
-    return this.VARLIST.replace('@', list)
+    let list = Object.keys(values)
+
+    for (let i = 0; i < list.length; i++) {
+      list[i] = list[i].slice(2)
+    }
+    return new RegExp(this.VARLIST.replace('@', list.join('|')), 'gm')
   }
 }

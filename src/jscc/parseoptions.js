@@ -78,17 +78,8 @@ export default function parseOptions (filename, options) {
     })
   }
 
-  /*
-  let mapOptions = {
-    sourceMapFile: options.sourceMapFile || '',
-    includeContent: options.includeContent === true,
-    hires: options.hires !== false
-  }*/
-
   return {
-    maxEmptyLines: options.maxEmptyLines | 0,
     sourceMap: options.sourceMap !== false,
-    //mapOptions,
     comments,
     values
   }

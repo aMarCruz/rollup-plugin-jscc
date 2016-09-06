@@ -20,13 +20,13 @@ parserOptions:
   ###########################################################################
 
 #globals:
-#  require: true
 
   ###########################################################################
   #   RECOMMENDED PRESET - mainly for possible errors                       #
+  #   See https://github.com/eslint/eslint/blob/master/conf/eslint.json     #
   ###########################################################################
 
-extends: "eslint:recommended"   # See https://github.com/eslint/eslint/blob/master/conf/eslint.json
+extends: "eslint:recommended"
 
   ###########################################################################
   #   RULES - omitted defaults and rules in eslint:recommended              #
@@ -177,7 +177,6 @@ rules:
     - 2
     - int32Hint: false            # require spaces around infix operators, expect for `var|0`
   space-unary-ops: 2              # require spaces after new, delete, typeof, void, yield, disallow spaces for ++, --, etc
-  object-curly-spacing:
+  object-curly-spacing:           # require spaces inside brackets
     - 2
     - "always"
-    - objectsInObjects: false     # require spaces inside brackets

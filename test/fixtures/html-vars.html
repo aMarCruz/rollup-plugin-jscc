@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<!--
+  App main template
+  @license MIT
+-->
+<!--#set __SUFFIX +(new Date()) -->
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>__TITLE</title>
+</head>
+<body>
+  <!--
+    this comment will be deleted!
+  -->
+  <h1>__TITLE</h1>
+  <!-- and this -->
+  <!--#if __DEBUG -->
+  <script src="js/debug.js?__SUFFIX"></script>
+  <!--#endif -->
+  <script src="js/myapp.js?__SUFFIX"></script>
+</body>
+</html>

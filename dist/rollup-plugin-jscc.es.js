@@ -1,17 +1,14 @@
-'use strict';
-
-function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
-
-var path = require('path');
-var MagicString = _interopDefault(require('magic-string'));
-var rollupPluginutils = require('rollup-pluginutils');
-var fs = require('fs');
+import MagicString from 'magic-string';
+import { relative, extname } from 'path';
+import { createFilter } from 'rollup-pluginutils';
+import { readFileSync } from 'fs';
 
 /**
  * @module regexes
  *
  * Shared regexes
  */
+/* eslint-disable max-len */
 
 var RE = {
   // Multi-line comment
@@ -21,7 +18,7 @@ var RE = {
   // Quoted strings, take care about embedded eols
   STRINGS:  /"[^"\n\\]*(?:\\[\S\s][^"\n\\]*)*"|'[^'\n\\]*(?:\\[\S\s][^'\n\\]*)*'|`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g,
   // Allows skip division operators to detect non-regex slash -- $1: the slash
-  DIVISOR:  /(?:\breturn\s+|(?:[$\w\)\]]|\+\+|--)\s*(\/)(?![*\/]))/g,
+  DIVISOR:  /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|\/>|(?:[$\w\)\]]|\+\+|--)\s*(\/)(?![*\/]))/g,
   // Matches regexes -- $1 last slash of the regex
   REGEXES:  /\/(?=[^*\/])[^[/\\]*(?:(?:\[(?:\\.|[^\]\\]*)*\]|\\.)[^[/\\]*)*?(\/)[gim]*/g,
 
@@ -43,8 +40,12 @@ var RE = {
 
   // for matching all vars inside code
   reVarList: function reVarList (values) {
-    var list = Object.keys(values).map(function (v) { return v.slice(2); }).join('|')
-    return this.VARLIST.replace('@', list)
+    var list = Object.keys(values)
+
+    for (var i = 0; i < list.length; i++) {
+      list[i] = list[i].slice(2)
+    }
+    return new RegExp(this.VARLIST.replace('@', list.join('|')), 'gm')
   }
 }
 
@@ -52,7 +53,7 @@ var _filters = {
   // only preserve license
   license:  /^@license\b/,
   // (almost) like the uglify defaults
-  some:     /(?:^(?:\/[*/]|<--)!|(?:@license|@preserve|@cc_on)\b)/,
+  some:     /(?:@license|@preserve|@cc_on)\b/,
   // http://usejsdoc.org/
   jsdoc:    /^\/\*\*[^@]*@[A-Za-z]/,
   // http://www.jslint.com/help.html
@@ -66,14 +67,16 @@ var _filters = {
   // https://gotwarlost.github.io/istanbul/
   istanbul: /^\/[*\/]\s*istanbul\s/,
   // http://www.html5rocks.com/en/tutorials/developertools/sourcemaps/
-  srcmaps:  /\/\/#\ssource(Mapping)URL=/
+  srcmaps:  /\/\/#\ssource(Mapping)URL=/,
+  // preserve html comments
+  html:    /<!--(?!>)[\S\s]*?-->/
 }
 
 function parseOptions (filename, options) {
   if (!options) options = {}
 
   function _file (s) {
-    return s && path.relative(process.cwd(), filename).replace(/\\/g, '/') || ''
+    return s && relative(process.cwd(), filename).replace(/\\/g, '/') || ''
   }
 
   // sallow copy of the values, for per file basis
@@ -122,89 +125,10 @@ function parseOptions (filename, options) {
     })
   }
 
-  /*
-  let mapOptions = {
-    sourceMapFile: options.sourceMapFile || '',
-    includeContent: options.includeContent === true,
-    hires: options.hires !== false
-  }*/
-
   return {
-    maxEmptyLines: options.maxEmptyLines | 0,
     sourceMap: options.sourceMap !== false,
-    //mapOptions,
     comments: comments,
     values: values
-  }
-}
-
-var _MULTILINES = /[ \t]*\n\s*$/.source
-var _ONELINE = /(?:[ \t]+$)/.source
-
-/*
-    Matched result is $1:prefix, $2:varname, $3:lines
- */
-function makeRegex (values, lines) {
-  var list = RE.reVarList(values)
-
-  if (lines >= 0) list += "|(" + _MULTILINES + ")"
-
-  return new RegExp((list + "|" + _ONELINE), 'gm')
-}
-
-function limitLines (block, lines) {
-  return lines > 0 ? block.replace(/[^\n]+/g, '').slice(0, lines) : ''
-}
-
-
-function postproc (code, opts) {
-
-  // @TODO: Optimize for maxEmptyLines -1
-  var magicString = new MagicString(code)
-  var maxLines = opts.maxEmptyLines < 0 ? 0xffff : opts.maxEmptyLines
-  var regex = makeRegex(opts.values, maxLines)
-
-  var match, block, repstr, changes
-
-  // this avoids removing the last EOL
-  if (/\n\s*$/.test(code)) magicString.append('\n')
-
-  match = code.match(/^\s*\n(?=\s*\S)/)
-  if (match) {
-    block = match[0]
-    repstr = limitLines(block, maxLines)
-    changes = replaceBlock(block, 0, repstr)
-    regex.lastIndex = block.length
-  }
-
-  while ((match = regex.exec(code))) {
-
-    block = match[2]
-    if (block) {
-      repstr = match[1] + opts.values[block]
-    } else {
-      block = match[3]
-      repstr = block ? limitLines(match[3], maxLines) : ''
-    }
-
-    changes = replaceBlock(match[0], match.index, repstr) || changes
-  }
-
-  if (changes) {
-    var result = { code: magicString.toString() }
-    if (opts.sourceMap) {
-      result.map = magicString.generateMap({ hires: true })
-    }
-    return result
-  }
-
-  return code
-
-  function replaceBlock (_block, start, _str) {
-    if (_block === _str) return false
-    var end = start + _block.length
-    magicString.overwrite(start, end, _str)
-    return true
   }
 }
 
@@ -255,7 +179,6 @@ function evalExpr (str, ctx) {
 /*
     Parser for conditional comments
  */
-// const
 var NONE = 0
 var IF   = 1
 var ELSE = 2
@@ -416,12 +339,14 @@ CodeParser.prototype = {
   },
 
   _adjustBlock: function _adjustBlock (block) {
-    var match = block.match(/\n|\*\/|-->/)
+    // special case for hidden blocks
+    if (block.slice(0, 2) === '/*') {
+      var end = block.search(/\*\/|-->|\n/)
 
-    if (match) {
-      var len = match[0].length
-      if (len > 1) match.index += len
-      block = block.slice(0, match.index)
+      if (~end && block[end] === '\n') {
+        // trim avoids cut original \r\n eols
+        block = block.slice(0, end).trim()
+      }
     }
     return block
   },
@@ -488,30 +413,6 @@ CodeParser.prototype = {
 }
 
 /**
- * By using premaked string of spaces, blankBlock is faster than
- * block.replace(/[^ \n]+/, ' ').
- *
- * @const {string}
- * @static
- */
-var space150 = new Array(151).join(' ')
-
-/**
- * Replaces all characters in the clock with spaces, except line-feeds.
- *
- * @param   {string} block - The buffer to replace
- * @returns {string}         The replacement block.
- */
-function blankBlock (block) {
-  return block.replace(/[^\n]+/g, function (m) {
-    var len = m.length
-    var str = space150
-    while (str.length < len) str += space150
-    return str.slice(0, len)
-  })
-}
-
-/**
  * rollup-plugin-jspp entry point
  * @module
  */
@@ -525,18 +426,22 @@ var QBLOCKS = RegExp([
 ].join('|'), 'gm')
 
 
-function preproc (code, filename, options) {
+function preproc (code, filename, _options) {
 
-  var parser = new CodeParser(options)
-  var cache  = []
-  var output = true
+  var opts      = parseOptions(filename, _options)
+  var magicStr  = new MagicString(code)
+  var parser    = new CodeParser(opts)
 
+  var changes = false
+  var output  = true
   var re = QBLOCKS
+
   var lastIndex
   var match
 
+  // normalize eols - replacement here does NOT affect the result
   if (~code.indexOf('\r')) {
-    code = code.replace(/\r\n/g, ' \n').replace(/\r/g, '\n')
+    code = code.replace(/\r\n/g, '\n\n').replace(/\r/g, '\n')
   }
   re.lastIndex = lastIndex = 0
 
@@ -548,15 +453,16 @@ function preproc (code, filename, options) {
 
     var comment = parser.parse(code, block, index)
     if (comment) {
-      pushCache(code.slice(lastIndex, index), output)
+      pushCache(code.slice(lastIndex, index), lastIndex, output)
+
+      block = comment.block   // parse can change the length
 
       if (comment.type === 'JSCC') {
-        block = comment.block
         re.lastIndex = index + block.length
         output = parser.checkOutput(comment)
-        pushCache(block, false)
+        pushCache(block, index, false)
       } else {
-        pushCache(block, output && canOut(comment))
+        pushCache(block, index, output && canOut(block))
       }
 
       lastIndex = re.lastIndex
@@ -566,51 +472,99 @@ function preproc (code, filename, options) {
   parser.close()  // let parser to detect unbalanced blocks
 
   if (code.length > lastIndex) {
-    pushCache(code.slice(lastIndex), output)
+    pushCache(code.slice(lastIndex), lastIndex, output)
   }
 
-  return cache.join('')
+  // by getting the code from magicString, we keep original line-endings
+  var result = {
+    code: magicStr.toString()
+  }
+  if (changes && opts.sourceMap) {
+    result.map = magicStr.generateMap({ hires: true })
+  }
+  return result
+
 
   // helpers ==============================================
 
-  function pushCache (block, out) {
-    if (block) cache.push(out ? block : blankBlock(block))
+  function pushCache (str, start, out) {
+    if (!str) return
+
+    if (!out) {
+      magicStr.overwrite(start, start + str.length, ' ')
+      changes = true
+
+    } else if (~str.indexOf('__')) {
+      var mm
+      var rr = RE.reVarList(opts.values)
+
+      // $1: prefix, $2: varname
+      while ((mm = rr.exec(str))) {
+        var v = mm[2]
+        if (v) {
+          var idx = start + mm.index + mm[1].length
+          magicStr.overwrite(idx, idx + v.length, '' + opts.values[v])
+          changes = true
+        }
+      }
+    }
   }
 
-  function canOut (comment) {
-    var oc = options.comments
+  // Array.find is not available in node 0.12
+  function canOut (str) {
+    var oc = opts.comments
 
-    // Array.find is not available in node 0.12
-    function find (f, s) {
-      for (var i = 0; i < f.length; i++) {
-        if (f[i].test(s)) return true
+    if (oc && oc !== true) {
+      for (var i = 0; i < oc.length; i++) {
+        if (oc[i].test(str)) return true
       }
-      return false
+      oc = false
     }
-    return oc === true || oc && find(oc, comment.block)
+    return oc
   }
 }
 
 /**
- * rollup-plugin-jspp entry point
+ * Creates a filter for the options `include`, `exclude`, and `extensions`.
+ * Since `extensions` is not a rollup option, I think is widely used.
+ *
+ * @param {object} opts? - The user options
+ * @returns {function}     Filter function that returns true if a given
+ *                         file matches the filter.
+ */
+function _createFilter (opts) {
+  if (!opts) opts = {}
+
+  var filt = createFilter(opts.include, opts.exclude)
+  var exts = opts.extensions
+             ? opts.extensions.map(function (e) { return (e[0] !== '.' ? '.' + e : e).toLowerCase(); })
+             : ['.js']
+
+  return function (name) {
+    return filt(name) && exts.indexOf(extname(name).toLowerCase()) > -1
+  }
+}
+
+/**
+ * rollup-plugin-jscc entry point
  * @module
  */
 function jspp (options) {
-  if ( options === void 0 ) options = {};
 
-
-  var filter = rollupPluginutils.createFilter(options.include, options.exclude)
+  var filter = _createFilter(options)
 
   return {
-    name: 'jspp',
+
+    name: 'jscc',
+
     load: function load (id) {
-      if (!filter(id)) return null
-      var code = fs.readFileSync(id, 'utf8')
-      var opts = parseOptions(id, options)
-      return postproc(preproc(code, id, opts), opts)
+      if (filter(id)) {
+        var code = readFileSync(id, 'utf8')
+        return preproc(code, id, options)
+      }
+      return null
     }
   }
 }
 
-module.exports = jspp;
-//# sourceMappingURL=rollup-plugin-jspp.cjs.js.map
+export default jspp;

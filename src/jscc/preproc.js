@@ -2,8 +2,9 @@
  * rollup-plugin-jspp entry point
  * @module
  */
+import MagicString from 'magic-string'
+import parseOptions from './parseoptions'
 import CodeParser from './codeparser'
-import blankBlock from './blankblock'
 import RE from './regexes'
 
 const QBLOCKS = RegExp([
@@ -16,18 +17,22 @@ const QBLOCKS = RegExp([
 ].join('|'), 'gm')
 
 
-export default function preproc (code, filename, options) {
+export default function preproc (code, filename, _options) {
 
-  let parser = new CodeParser(options)
-  let cache  = []
-  let output = true
+  const opts      = parseOptions(filename, _options)
+  const magicStr  = new MagicString(code)
+  const parser    = new CodeParser(opts)
 
+  let changes = false
+  let output  = true
   let re = QBLOCKS
+
   let lastIndex
   let match
 
+  // normalize eols - replacement here does NOT affect the result
   if (~code.indexOf('\r')) {
-    code = code.replace(/\r\n/g, ' \n').replace(/\r/g, '\n')
+    code = code.replace(/\r\n/g, '\n\n').replace(/\r/g, '\n')
   }
   re.lastIndex = lastIndex = 0
 
@@ -39,15 +44,16 @@ export default function preproc (code, filename, options) {
 
     let comment = parser.parse(code, block, index)
     if (comment) {
-      pushCache(code.slice(lastIndex, index), output)
+      pushCache(code.slice(lastIndex, index), lastIndex, output)
+
+      block = comment.block   // parse can change the length
 
       if (comment.type === 'JSCC') {
-        block = comment.block
         re.lastIndex = index + block.length
         output = parser.checkOutput(comment)
-        pushCache(block, false)
+        pushCache(block, index, false)
       } else {
-        pushCache(block, output && canOut(comment))
+        pushCache(block, index, output && canOut(block))
       }
 
       lastIndex = re.lastIndex
@@ -57,27 +63,54 @@ export default function preproc (code, filename, options) {
   parser.close()  // let parser to detect unbalanced blocks
 
   if (code.length > lastIndex) {
-    pushCache(code.slice(lastIndex), output)
+    pushCache(code.slice(lastIndex), lastIndex, output)
   }
 
-  return cache.join('')
+  // by getting the code from magicString, we keep original line-endings
+  let result = {
+    code: magicStr.toString()
+  }
+  if (changes && opts.sourceMap) {
+    result.map = magicStr.generateMap({ hires: true })
+  }
+  return result
+
 
   // helpers ==============================================
 
-  function pushCache (block, out) {
-    if (block) cache.push(out ? block : blankBlock(block))
+  function pushCache (str, start, out) {
+    if (!str) return
+
+    if (!out) {
+      magicStr.overwrite(start, start + str.length, ' ')
+      changes = true
+
+    } else if (~str.indexOf('__')) {
+      let mm
+      let rr = RE.reVarList(opts.values)
+
+      // $1: prefix, $2: varname
+      while ((mm = rr.exec(str))) {
+        let v = mm[2]
+        if (v) {
+          let idx = start + mm.index + mm[1].length
+          magicStr.overwrite(idx, idx + v.length, '' + opts.values[v])
+          changes = true
+        }
+      }
+    }
   }
 
-  function canOut (comment) {
-    let oc = options.comments
+  // Array.find is not available in node 0.12
+  function canOut (str) {
+    let oc = opts.comments
 
-    // Array.find is not available in node 0.12
-    function find (f, s) {
-      for (var i = 0; i < f.length; i++) {
-        if (f[i].test(s)) return true
+    if (oc && oc !== true) {
+      for (var i = 0; i < oc.length; i++) {
+        if (oc[i].test(str)) return true
       }
-      return false
+      oc = false
     }
-    return oc === true || oc && find(oc, comment.block)
+    return oc
   }
 }

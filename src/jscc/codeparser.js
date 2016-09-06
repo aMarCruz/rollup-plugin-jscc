@@ -4,7 +4,6 @@
 import evalExpr from './evalexpr'
 import RE from './regexes'
 
-// const
 const NONE = 0
 const IF   = 1
 const ELSE = 2
@@ -165,12 +164,14 @@ CodeParser.prototype = {
   },
 
   _adjustBlock (block) {
-    let match = block.match(/\n|\*\/|-->/)
+    // special case for hidden blocks
+    if (block.slice(0, 2) === '/*') {
+      let end = block.search(/\*\/|-->|\n/)
 
-    if (match) {
-      let len = match[0].length
-      if (len > 1) match.index += len
-      block = block.slice(0, match.index)
+      if (~end && block[end] === '\n') {
+        // trim avoids cut original \r\n eols
+        block = block.slice(0, end).trim()
+      }
     }
     return block
   },

@@ -5,6 +5,8 @@ const expect = require('expect')
 const path   = require('path')
 const fs     = require('fs')
 
+process.chdir(__dirname)
+
 function concat (name, subdir) {
   let file = path.join(__dirname, subdir || 'expected', name)
 
@@ -13,34 +15,41 @@ function concat (name, subdir) {
   return file
 }
 
-process.chdir(__dirname)
+function normalize (buffer) {
+  return buffer.trim()
+         .replace(/[ \t]*$/gm, '').replace(/(?:\r\n?|\n)+/g, '\n')
+}
+
+function getexpect (file) {
+  let buffer = fs.readFileSync(concat(file), 'utf8')
+  return normalize(buffer)
+}
 
 function generate (file, opts) {
-  let infile = concat(file, 'fixtures')
-  let result = plugin(opts).load(infile)
+  let inFile = concat(file, 'fixtures')
+  let result = plugin(opts).load(inFile)
 
-  if (result != null && typeof result == 'string') {
-    result = { code: result }
-  }
-  return result
+  return result && result.code && result.code.replace(/[ \t]*$/gm, '')
 }
 
 function testFile (file, opts, save) {
-  let expected = fs.readFileSync(concat(file), 'utf8')
-  let code = generate(file, opts).code
+  let expected = getexpect(file)
+  let result = generate(file, opts)
 
   if (save) {
     // eslint-disable-next-line no-console
-    console.error('------------------\n${ code }------------------\n')
-    fs.writeFileSync(concat(file + '_out.js'), code || '')
+    console.error('------------------\n${ result }------------------\n')
+    fs.writeFileSync(concat(file + '_out.js'), result || '')
   }
-  expect(code).toBe(expected)
+  result = normalize(result)
+  expect(result).toBe(expected)
 }
 
 function testStr (file, expected, opts) {
-  let code = generate(file, opts).code
+  let result = generate(file, opts)
 
-  expect(code).toBe(expected)
+  result = normalize(result)
+  expect(result).toBe(expected)
 }
 
 describe('rollup-plugin-jscc', () => {
@@ -69,55 +78,37 @@ describe('rollup-plugin-jscc', () => {
     })
   })
 
-  it('do not touch current indentation of non-empty lines', () => {
-    testFile('first-line-indented')
-  })
-
   it('support conditional comments with the `#if __VAR` syntax', () => {
-    testStr('if-cc-directive', 'true\n', {
+    testStr('if-cc-directive', 'true', {
       values: { __TRUE: true }
     })
-  })
-
-  it('has fine support for empty lines with `maxEmptyLines`', () => {
-    testStr('empty-lines-top', 'x')
-    testStr('empty-lines-bottom', 'x\n')
-    testStr('empty-lines-top', '\nx', { maxEmptyLines: 1 })
-    testStr('empty-lines-bottom', 'x\n\n', { maxEmptyLines: 1 })
-    testStr('empty-lines-top', '\n\n\nx', { maxEmptyLines: 3 })
-    testStr('empty-lines-bottom', 'x\n\n\n\n', { maxEmptyLines: 3 })
-  })
-
-  it('can leave all the lines setting `maxEmptyLines` = -1', () => {
-    let expected = fs.readFileSync(concat('empty-lines-top', 'fixtures'), 'utf8')
-    testStr('empty-lines-top', expected, { maxEmptyLines: -1 })
-
-    expected = fs.readFileSync(concat('empty-lines-bottom', 'fixtures'), 'utf8')
-    testStr('empty-lines-bottom', expected, { maxEmptyLines: -1 })
   })
 })
 
 describe('Compilation variables', () => {
   it('can be defined within the code with `#set`', () => {
-    testStr('var-inline-var', 'true\nfoo\n')
+    testStr('var-inline-var', 'true\nfoo')
   })
   it('can be defined within the code with expressions', () => {
-    testStr('var-inline-expr', 'true\nfoo\n')
+    testStr('var-inline-expr', 'true\nfoo')
   })
   it('can be used for simple substitution in the code', () => {
-    testStr('var-code-replace', 'true==1\n"foo"\n')
+    testStr('var-code-replace', 'true==1\n"foo"')
   })
   it('defaults to `undefined` if no value is given', () => {
-    testStr('var-default-value', 'true\n')
+    testStr('var-default-value', 'true')
+  })
+  it('can be changed anywhere in the code', () => {
+    testStr('var-changes', 'true\nfalse')
   })
   it('`#unset` removes defined variables', () => {
-    testStr('var-unset', 'true\n', { values: { __FOO: true }})
+    testStr('var-unset', 'true', { values: { __FOO: true } })
   })
   it('syntax errors in expressions throws during the evaluation', () => {
     expect(() => { generate('var-eval-error') }).toThrow()
   })
   it('undefined vars are replaced with `undefined` in the evaluation', () => {
-    testStr('var-eval-undefined', 'true\n')
+    testStr('var-eval-undefined', 'true')
   })
   it('other runtime errors throws (like accesing props of undefined)', () => {
     expect(() => { generate('var-eval-prop-undef') }).toThrow()
@@ -126,19 +117,19 @@ describe('Compilation variables', () => {
 
 describe('Conditional compilation', () => {
   it('supports `#else`', () => {
-    testStr('cc-else', 'true\n')
+    testStr('cc-else', 'true')
   })
   it('and the `#elif` directive', () => {
-    testStr('cc-elif', 'true\n')
+    testStr('cc-elif', 'true')
   })
   it('have `#ifset` for testing variable existence (even undefined values)', () => {
-    testStr('cc-ifset', 'true\n')
+    testStr('cc-ifset', 'true')
   })
   it('and `#ifnset` for testing not defined variables', () => {
-    testStr('cc-ifnset', 'true\n')
+    testStr('cc-ifnset', 'true')
   })
   it('blocks can be nested', () => {
-    testStr('cc-nested', 'true\ntrue\ntrue\n')
+    testStr('cc-nested', 'true\ntrue\ntrue')
   })
   it('you can throw an exception with custom message through `#error`', () => {
     expect(() => { generate('cc-error') }).toThrow(/boom!/)
@@ -154,6 +145,17 @@ describe('Conditional compilation', () => {
   })
 })
 
+
+describe('HTML processing', () => {
+  it('can handle variables', () => {
+    testFile('html-vars.html', {
+      extensions: ['html'],
+      values: { __TITLE: 'My App' }
+    })
+  })
+})
+
+
 describe('SourceMap support', () => {
 
   let rollup = require('rollup').rollup
@@ -163,13 +165,13 @@ describe('SourceMap support', () => {
       entry: concat('bundle-src.js', 'maps'),
       sourceMap: true,
       plugins: [
-        plugin()
+        plugin({ comments: ['some', 'eslint'] })
       ]
     }).then(function (bundle) {
       let result = bundle.generate({
         format: 'iife',
         indent: true,
-        moduleName: 'jspp',
+        moduleName: 'myapp',
         sourceMap: 'inline',
         sourceMapFile: 'maps/bundle.js', // generates sorce filename w/o path
         banner: '/*\n plugin version 1.0\n*/',
@@ -181,8 +183,8 @@ describe('SourceMap support', () => {
         If you modified the source in maps/bundle-src.js, you
         need to write the bundle and test it in the browser again.
       */
-      //console.log('\t--- writing bundle with inlined sourceMap...')
-      //fs.writeFileSync(concat('bundle', 'maps'), code, 'utf8')
+      console.log('\t--- writing bundle with inlined sourceMap...')
+      fs.writeFileSync(concat('bundle', 'maps'), code, 'utf8')
 
       let expected = fs.readFileSync(concat('bundle', 'maps'), 'utf8')
       expect(code).toBe(expected, 'Genereted code is incorrect!')
