@@ -14,44 +14,34 @@ var fs = require('fs');
  */
 /* eslint-disable max-len */
 
-var RE = {
-  // Multi-line comment
-  MLCOMMS:  /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//g,
-  // Single-line comment
-  SLCOMMS:  /\/\/.*$/g,
-  // Quoted strings, take care about embedded eols
-  STRINGS:  /"[^"\n\\]*(?:\\[\S\s][^"\n\\]*)*"|'[^'\n\\]*(?:\\[\S\s][^'\n\\]*)*'|`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g,
-  // Allows skip division operators to detect non-regex slash -- $1: the slash
-  DIVISOR:  /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|\/>|(?:[$\w\)\]]|\+\+|--)\s*(\/)(?![*\/]))/g,
-  // Matches regexes -- $1 last slash of the regex
-  REGEXES:  /\/(?=[^*\/])[^[/\\]*(?:(?:\[(?:\\.|[^\]\\]*)*\]|\\.)[^[/\\]*)*?(\/)[gim]*/g,
+// Multi-line comment
+var MLCOMMS = /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//g
 
-  // Matches valid HTML comments (allowed in ES6 code)
-  HTMLCOMMS: /<!--(?!>)[\S\s]*?-->/g,
+// Single-line comment
+var SLCOMMS = /\/\/.*$/g
 
-  // Matches the start of a comment
-  ISCOMMENT: /^(?:<--|\/\*|\/\/)/,
+// Quoted strings, take care about embedded eols
+var STRINGS = /"[^"\n\\]*(?:\\[\S\s][^"\n\\]*)*"|'[^'\n\\]*(?:\\[\S\s][^'\n\\]*)*'|`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g
 
-  // The constant values of this module
-  VARPAIR:  /^\s*(__[0-9A-Z][_0-9A-Z]*)\s*=?(.*)/,
-  VARNAME:  /^__[0-9A-Z][_0-9A-Z]*$/,
+// Allows skip division operators to detect non-regex slash -- $1: the slash
+var DIVISOR = /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|(?:[$\w\)\]]|\+\+|--)\s*\/(?![*\/]))/g
 
-  // var names inside expression
-  REPVARS:  /(^|[^$\w])(__[0-9A-Z][_0-9A-Z]*)\b(?=[^$\w]|$)/,
+// Matches regexes -- $1 last slash of the regex
+var REGEXES = /\/(?=[^*\/>])[^[/\\]*(?:(?:\[(?:\\.|[^\]\\]*)*\]|\\.)[^[/\\]*)*?(\/)[gim]*/g
 
-  // template for var list
-  VARLIST:  /(^|[^$\w])(__(?:@))\b(?=[^$\w]|$)/.source,
+// Matches valid HTML comments (allowed in ES6 code)
+var HTMLCOMMS = /<!--(?!>)[\S\s]*?-->/g
 
-  // for matching all vars inside code
-  reVarList: function reVarList (values) {
-    var list = Object.keys(values)
+// The constant values of this module
 
-    for (var i = 0; i < list.length; i++) {
-      list[i] = list[i].slice(2)
-    }
-    return new RegExp(this.VARLIST.replace('@', list.join('|')), 'gm')
-  }
-}
+var VARPAIR = /^\s*(__[0-9A-Z][_0-9A-Z]*)\s*=?(.*)/
+var VARNAME = /^__[0-9A-Z][_0-9A-Z]*$/
+
+// var names inside expression
+var EVLVARS = /(^|[^$\w\.])(__[0-9A-Z][_0-9A-Z]*)\b(?=[^$\w]|$)/g
+
+// var names inside the code
+var REPVARS = /(^|[^\w\.])(?!$\$)\$(__[0-9A-Z][_0-9A-Z]*)\b(?=[^$\w]|$)/g
 
 var _filters = {
   // only preserve license
@@ -91,7 +81,7 @@ function parseOptions (filename, options) {
       throw new Error('values must be an plain object')
     } else {
       Object.keys(source).forEach(function (v) {
-        if (!RE.VARNAME.test(v)) {
+        if (!VARNAME.test(v)) {
           throw new Error(("invalid variable name: " + v))
         }
         values[v] = source[v]
@@ -138,10 +128,10 @@ function parseOptions (filename, options) {
 
 // For replacing of jspreproc variables (#set)
 var _REPVARS = RegExp(
-    RE.STRINGS.source + '|' +
-    RE.DIVISOR.source + '|' +     // $1 can have '/'
-    RE.REGEXES.source + '|' +     // $2 can have '/'
-    RE.REPVARS.source,            // $3 = prefix, $4 = var name
+    STRINGS.source + '|' +
+    DIVISOR.source + '|' +
+    REGEXES.source + '|' +     // $1 can have '/'
+    EVLVARS.source,            // $2 = prefix, $3 = var name
   'g')
 
 /**
@@ -155,7 +145,7 @@ var _REPVARS = RegExp(
 function evalExpr (str, ctx) {
 
   // var replacement
-  function _repVars (m, _1, _2, p, v) {
+  function _repVars (m, _, p, v) {
     return v
       ? p + (v in ctx ? 'this.' + v : v in global ? 'global.' + v : 'undefined')
       : m
@@ -173,7 +163,7 @@ function evalExpr (str, ctx) {
     var fn = new Function('', 'return (' + expr + ');')
     result = fn.call(ctx)
   } catch (e) {
-    console.error(("---> \"" + expr + "\""))  // eslint-disable-line no-console
+    console.error(("In expression: " + expr))  // eslint-disable-line no-console
     throw e
   }
 
@@ -390,7 +380,7 @@ CodeParser.prototype = {
   },
 
   _set: function _set (s) {
-    var m = s.match(RE.VARPAIR)
+    var m = s.match(VARPAIR)
     if (m) {
       var k = m[1]
       var v = m[2]
@@ -402,7 +392,7 @@ CodeParser.prototype = {
   },
 
   _unset: function _unset (s) {
-    var def = s.match(RE.VARNAME)
+    var def = s.match(VARNAME)
     if (def) {
       delete this.options.values[s]
     } else {
@@ -416,17 +406,37 @@ CodeParser.prototype = {
   }
 }
 
+// for matching all vars inside code
+function remapVars (magicStr, values, str, start) {
+  var re = REPVARS
+  var mm
+  var changes = false
+
+  re.lastIndex = 0  // `re` is global, so reset
+
+  while ((mm = re.exec(str))) {
+    var v = mm[2]
+    if (v && v in values) {
+      var idx = start + mm.index + mm[1].length
+      magicStr.overwrite(idx, idx + v.length + 1, '' + values[v])
+      changes = true
+    }
+  }
+
+  return changes
+}
+
 /**
  * rollup-plugin-jspp entry point
  * @module
  */
 var QBLOCKS = RegExp([
-  RE.MLCOMMS.source,                  // --- multi-line comment
-  RE.SLCOMMS.source,                  // --- single-line comment
-  RE.HTMLCOMMS.source,                // --- html multi-line comment
-  RE.STRINGS.source,                  // --- string, don't care about embedded eols
-  RE.DIVISOR.source,                  // $1: division operator
-  RE.REGEXES.source                   // $2: last slash of regex
+  MLCOMMS.source,                  // --- multi-line comment
+  SLCOMMS.source,                  // --- single-line comment
+  HTMLCOMMS.source,                // --- html multi-line comment
+  STRINGS.source,                  // --- string, don't care about embedded eols
+  DIVISOR.source,                  // $1: division operator
+  REGEXES.source                   // $2: last slash of regex
 ].join('|'), 'gm')
 
 
@@ -498,19 +508,8 @@ function preproc (code, filename, _options) {
       magicStr.overwrite(start, start + str.length, ' ')
       changes = true
 
-    } else if (~str.indexOf('__')) {
-      var mm
-      var rr = RE.reVarList(opts.values)
-
-      // $1: prefix, $2: varname
-      while ((mm = rr.exec(str))) {
-        var v = mm[2]
-        if (v) {
-          var idx = start + mm.index + mm[1].length
-          magicStr.overwrite(idx, idx + v.length, '' + opts.values[v])
-          changes = true
-        }
-      }
+    } else if (~str.indexOf('$__')) {
+      changes = remapVars(magicStr, opts.values, str, start) || changes
     }
   }
 
@@ -572,3 +571,4 @@ function jspp (options) {
 }
 
 module.exports = jspp;
+//# sourceMappingURL=rollup-plugin-jscc.cjs.js.map

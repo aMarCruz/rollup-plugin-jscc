@@ -5,15 +5,16 @@
 import MagicString from 'magic-string'
 import parseOptions from './parseoptions'
 import CodeParser from './codeparser'
-import RE from './regexes'
+import { remapVars } from './remapvars'
+import { MLCOMMS, SLCOMMS, HTMLCOMMS, STRINGS, DIVISOR, REGEXES } from './revars'
 
 const QBLOCKS = RegExp([
-  RE.MLCOMMS.source,                  // --- multi-line comment
-  RE.SLCOMMS.source,                  // --- single-line comment
-  RE.HTMLCOMMS.source,                // --- html multi-line comment
-  RE.STRINGS.source,                  // --- string, don't care about embedded eols
-  RE.DIVISOR.source,                  // $1: division operator
-  RE.REGEXES.source                   // $2: last slash of regex
+  MLCOMMS.source,                  // --- multi-line comment
+  SLCOMMS.source,                  // --- single-line comment
+  HTMLCOMMS.source,                // --- html multi-line comment
+  STRINGS.source,                  // --- string, don't care about embedded eols
+  DIVISOR.source,                  // $1: division operator
+  REGEXES.source                   // $2: last slash of regex
 ].join('|'), 'gm')
 
 
@@ -85,19 +86,8 @@ export default function preproc (code, filename, _options) {
       magicStr.overwrite(start, start + str.length, ' ')
       changes = true
 
-    } else if (~str.indexOf('__')) {
-      let mm
-      let rr = RE.reVarList(opts.values)
-
-      // $1: prefix, $2: varname
-      while ((mm = rr.exec(str))) {
-        let v = mm[2]
-        if (v) {
-          let idx = start + mm.index + mm[1].length
-          magicStr.overwrite(idx, idx + v.length, '' + opts.values[v])
-          changes = true
-        }
-      }
+    } else if (~str.indexOf('$__')) {
+      changes = remapVars(magicStr, opts.values, str, start) || changes
     }
   }
 

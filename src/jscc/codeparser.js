@@ -2,7 +2,7 @@
     Parser for conditional comments
  */
 import evalExpr from './evalexpr'
-import RE from './regexes'
+import { VARPAIR, VARNAME } from './revars'
 
 const NONE = 0
 const IF   = 1
@@ -211,7 +211,7 @@ CodeParser.prototype = {
   },
 
   _set (s) {
-    let m = s.match(RE.VARPAIR)
+    let m = s.match(VARPAIR)
     if (m) {
       let k = m[1]
       let v = m[2]
@@ -223,7 +223,7 @@ CodeParser.prototype = {
   },
 
   _unset (s) {
-    let def = s.match(RE.VARNAME)
+    let def = s.match(VARNAME)
     if (def) {
       delete this.options.values[s]
     } else {

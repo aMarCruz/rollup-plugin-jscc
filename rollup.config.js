@@ -7,5 +7,6 @@ var external = Object
 module.exports = {
   entry: 'src/index.js',
   plugins: [buble()],
-  external: external
+  external: external,
+  sourceMap: true
 }

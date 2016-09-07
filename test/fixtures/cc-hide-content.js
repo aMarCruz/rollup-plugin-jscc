@@ -11,7 +11,7 @@ function initialize(options) {
   // You can put almost anything here, except multiline comments.
   const _DEBUG = true
   const stderr = console.error.bind(console) //eslint-disable-line no-console
-  const errstr = '__TEST'   // <-- cc variables are ok
+  const errstr = '$__TEST'   // <-- cc variables are ok
   // ...it can have a lot of code
 }
 //#else */

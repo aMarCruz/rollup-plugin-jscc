@@ -36,11 +36,8 @@ function testFile (file, opts, save) {
   let expected = getexpect(file)
   let result = generate(file, opts)
 
-  if (save) {
-    // eslint-disable-next-line no-console
-    console.error('------------------\n${ result }------------------\n')
-    fs.writeFileSync(concat(file + '_out.js'), result || '')
-  }
+  if (save) fs.writeFileSync(concat(file + '_out.js'), result || '')
+
   result = normalize(result)
   expect(result).toBe(expected)
 }
@@ -141,7 +138,7 @@ describe('Conditional compilation', () => {
     expect(() => { generate('cc-unbalanced') }).toThrow()
   })
   it('using multiline comments `/**/` allows hide content to linters', () => {
-    testFile('cc-hide-content')
+    testFile('cc-hide-content', {}, true)
   })
 })
 
@@ -183,8 +180,8 @@ describe('SourceMap support', () => {
         If you modified the source in maps/bundle-src.js, you
         need to write the bundle and test it in the browser again.
       */
-      console.log('\t--- writing bundle with inlined sourceMap...')
-      fs.writeFileSync(concat('bundle', 'maps'), code, 'utf8')
+      //console.log('\t--- writing bundle with inlined sourceMap...')
+      //fs.writeFileSync(concat('bundle', 'maps'), code, 'utf8')
 
       let expected = fs.readFileSync(concat('bundle', 'maps'), 'utf8')
       expect(code).toBe(expected, 'Genereted code is incorrect!')

@@ -3,21 +3,23 @@
   App main template
   @license MIT
 -->
-<!--#set __SUFFIX +(new Date()) -->
+<!--#set __SUFFIX 12345 -->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>__TITLE</title>
+  <title>$__TITLE</title>
 </head>
 <body>
   <!--
     this comment will be deleted!
   -->
-  <h1>__TITLE</h1>
+  <h1>$__TITLE</h1>
   <!-- and this -->
   <!--#if __DEBUG -->
-  <script src="js/debug.js?__SUFFIX"></script>
+  <script src="js/debug.js?$__SUFFIX"></script>
+  <!--#else -->
+  <script src="js/release.js?$__SUFFIX"></script>
   <!--#endif -->
-  <script src="js/myapp.js?__SUFFIX"></script>
+  <script src="js/myapp.js?$__SUFFIX"></script>
 </body>
 </html>

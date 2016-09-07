@@ -3,4 +3,4 @@
 true
 //#endif
 //#set __STR 'foo'
-__STR
+$__STR

@@ -1,5 +1,5 @@
 
-import RE from './regexes'
+import { VARNAME } from './revars'
 import { relative } from 'path'
 
 const _filters = {
@@ -40,7 +40,7 @@ export default function parseOptions (filename, options) {
       throw new Error('values must be an plain object')
     } else {
       Object.keys(source).forEach(v => {
-        if (!RE.VARNAME.test(v)) {
+        if (!VARNAME.test(v)) {
           throw new Error(`invalid variable name: ${ v }`)
         }
         values[v] = source[v]

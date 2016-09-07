@@ -1,4 +1,4 @@
 //#set __FOO true
-__FOO
+$__FOO
 //#set __FOO false
-__FOO
+$__FOO
