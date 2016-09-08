@@ -52,7 +52,7 @@ function testStr (file, expected, opts) {
 describe('rollup-plugin-jscc', () => {
 
   it('by default keep some comments', () => {
-    testFile('defaults')
+    testFile('defaults', {})
   })
 
   it('predefined variable `__FILE` is the relative path of the current file', () => {
@@ -138,7 +138,7 @@ describe('Conditional compilation', () => {
     expect(() => { generate('cc-unbalanced') }).toThrow()
   })
   it('using multiline comments `/**/` allows hide content to linters', () => {
-    testFile('cc-hide-content', {}, true)
+    testFile('cc-hide-content', {})
   })
 })
 

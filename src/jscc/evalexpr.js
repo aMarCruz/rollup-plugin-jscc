@@ -1,11 +1,12 @@
 
-import { STRINGS, DIVISOR, REGEXES, EVLVARS } from './revars'
+import { JS_STRING, JS_DIVISOR, JS_REGEX } from 'perf-regexes'
+import { EVLVARS } from './revars'
 
 // For replacing of jspreproc variables (#set)
 const _REPVARS = RegExp(
-    STRINGS.source + '|' +
-    DIVISOR.source + '|' +
-    REGEXES.source + '|' +     // $1 can have '/'
+    JS_STRING.source  + '|' +
+    JS_DIVISOR.source + '|' +
+    JS_REGEX.source   + '|' +  // $1 = '/' if is a regex
     EVLVARS.source,            // $2 = prefix, $3 = var name
   'g')
 

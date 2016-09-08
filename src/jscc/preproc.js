@@ -6,15 +6,18 @@ import MagicString from 'magic-string'
 import parseOptions from './parseoptions'
 import CodeParser from './codeparser'
 import { remapVars } from './remapvars'
-import { MLCOMMS, SLCOMMS, HTMLCOMMS, STRINGS, DIVISOR, REGEXES } from './revars'
+
+import { JS_MLCOMM, JS_SLCOMM, HTML_COMM,
+  JS_STRING, JS_DIVISOR, JS_REGEX, ES6_TSTR_SIMPLE } from 'perf-regexes'
 
 const QBLOCKS = RegExp([
-  MLCOMMS.source,                  // --- multi-line comment
-  SLCOMMS.source,                  // --- single-line comment
-  HTMLCOMMS.source,                // --- html multi-line comment
-  STRINGS.source,                  // --- string, don't care about embedded eols
-  DIVISOR.source,                  // $1: division operator
-  REGEXES.source                   // $2: last slash of regex
+  JS_MLCOMM.source,                 // --- multi-line comment
+  JS_SLCOMM.source,                 // --- single-line comment
+  HTML_COMM.source,                 // --- html multi-line comment
+  JS_STRING.source,                 // --- string, don't care about embedded eols
+  ES6_TSTR_SIMPLE.source,           // --- es6 template string (limited support)
+  JS_DIVISOR.source,                // $1: division operator
+  JS_REGEX.source                   // $2: last slash of regex
 ].join('|'), 'gm')
 
 

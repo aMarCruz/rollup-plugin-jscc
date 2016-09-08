@@ -7,18 +7,17 @@
 
 JavaScript preprocessor for [rollup](http://rollupjs.org/)
 
-Featuring some of the C preprocessor characteristics through special JavaScript comments, jscc can be used in sources with a JavaScript-like syntax to build multiple versions of your software from one code base.
+Featuring some of the C preprocessor characteristics through special JavaScript comments, jscc can be used in sources with a JavaScript-like syntax to build multiple versions of your software from the same code base.
 
 With jscc, you have:
 
 * Conditional exclusion of code, based on variables and JavaScript expressions
-* Replacement of variables inside the source (by value)
-* Remotion of regular JavaScript and HTML comments (optional, configurable)
+* Replacement of variables inside the source (by value at compile-time)
 * Source Map support
 
 This plugin is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Maps support but without the file importer (rollup does this better).
 
-jscc is **not** a minifier nor beautifier tool, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) to trim and remove empty lines.
+jscc is **not** a minifier nor a beautifier tool, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) to remove comments and empty lines.
 
 ## Install
 
@@ -55,7 +54,7 @@ jspreproc is a mature, proven tool, but does not handles ES6 strings, so this is
 
 ## Known Issues
 
-Regexes starting with `//` or `/>` breaks the parser. Please use `/\/` and `/\>`.
+Regexes starting with `//` or `/>` breaks the parsing. Please follow the best-practices and use `/\/` and `/\>`.
 
 ## TODO
 

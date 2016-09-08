@@ -1,16 +1,6 @@
 /**
  * @module regexlist
  */
-export {
-  MLCOMMS,
-  SLCOMMS,
-  STRINGS,
-  DIVISOR,
-  REGEXES,
-  HTMLCOMMS,
-  ISCOMMENT } from './../util/regexes'
-
-// The constant values of this module
 
 export const VARPAIR = /^\s*(__[0-9A-Z][_0-9A-Z]*)\s*=?(.*)/
 export const VARNAME = /^__[0-9A-Z][_0-9A-Z]*$/

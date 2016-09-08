@@ -4,31 +4,8 @@ import { createFilter } from 'rollup-pluginutils';
 import { readFileSync } from 'fs';
 
 /**
- * @module regexes
- *
- * Shared regexes
+ * @module regexlist
  */
-/* eslint-disable max-len */
-
-// Multi-line comment
-var MLCOMMS = /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//g
-
-// Single-line comment
-var SLCOMMS = /\/\/.*$/g
-
-// Quoted strings, take care about embedded eols
-var STRINGS = /"[^"\n\\]*(?:\\[\S\s][^"\n\\]*)*"|'[^'\n\\]*(?:\\[\S\s][^'\n\\]*)*'|`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g
-
-// Allows skip division operators to detect non-regex slash -- $1: the slash
-var DIVISOR = /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|(?:[$\w\)\]]|\+\+|--)\s*\/(?![*\/]))/g
-
-// Matches regexes -- $1 last slash of the regex
-var REGEXES = /\/(?=[^*\/>])[^[/\\]*(?:(?:\[(?:\\.|[^\]\\]*)*\]|\\.)[^[/\\]*)*?(\/)[gim]*/g
-
-// Matches valid HTML comments (allowed in ES6 code)
-var HTMLCOMMS = /<!--(?!>)[\S\s]*?-->/g
-
-// The constant values of this module
 
 var VARPAIR = /^\s*(__[0-9A-Z][_0-9A-Z]*)\s*=?(.*)/
 var VARNAME = /^__[0-9A-Z][_0-9A-Z]*$/
@@ -122,11 +99,45 @@ function parseOptions (filename, options) {
   }
 }
 
+/**
+ * @module perf-regexes
+ *
+ * Optimized and powerful regexes for JavaScript
+ */
+/* eslint-disable max-len */
+
+/** Matches valid multiline JS comments */
+var JS_MLCOMM = /\/\*[^*]*\*+(?:[^*\/][^*]*\*+)*\//g
+
+/** Single line JS comments */
+var JS_SLCOMM = /\/\/[^\n\r]*/g
+
+/** Single and double quoted strings, take care about embedded eols */
+var JS_STRING = /"[^"\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^"\n\r\\]*)*"|'[^'\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^'\n\r\\]*)*'/g
+
+/** Allow skip division operators and closing html tags to detect non-regex slashes */
+var JS_DIVISOR = /(?:\b(?:return|yield)\s+|<\/[-a-zA-Z]|(?:[$\w\)\]]|\+\+|--)\s*\/(?![*\/]))/g
+
+/** Matches literal regexes -- $1 last slash of the regex */
+var JS_REGEX = /\/(?=[^*\/\n\r>])[^[\n\r/\\]*(?:(?:\[(?:\\[^\n\r]|[^\]\n\r\\]*)*\]|\\.)[^[/\n\r\\]*)*?(\/)[gim]*/g
+
+/** Matches valid HTML comments (ES6 code can have this) */
+var HTML_COMM = /<!--(?!>)[\S\s]*?-->/g
+
+/**
+ * ES6 template strings (not recommended).
+ * This is for very limited strings, since there's no way to parse
+ * nested ES6 strings with regexes.
+ *
+ * This is a valid ES6 string: `foo ${ "`" + '`' + `\`${ { bar }.baz }` }`
+ */
+var ES6_TSTR_SIMPLE = /`[^`\\]*(?:\\[\S\s][^`\\]*)*`/g
+
 // For replacing of jspreproc variables (#set)
 var _REPVARS = RegExp(
-    STRINGS.source + '|' +
-    DIVISOR.source + '|' +
-    REGEXES.source + '|' +     // $1 can have '/'
+    JS_STRING.source  + '|' +
+    JS_DIVISOR.source + '|' +
+    JS_REGEX.source   + '|' +  // $1 = '/' if is a regex
     EVLVARS.source,            // $2 = prefix, $3 = var name
   'g')
 
@@ -427,12 +438,13 @@ function remapVars (magicStr, values, str, start) {
  * @module
  */
 var QBLOCKS = RegExp([
-  MLCOMMS.source,                  // --- multi-line comment
-  SLCOMMS.source,                  // --- single-line comment
-  HTMLCOMMS.source,                // --- html multi-line comment
-  STRINGS.source,                  // --- string, don't care about embedded eols
-  DIVISOR.source,                  // $1: division operator
-  REGEXES.source                   // $2: last slash of regex
+  JS_MLCOMM.source,                 // --- multi-line comment
+  JS_SLCOMM.source,                 // --- single-line comment
+  HTML_COMM.source,                 // --- html multi-line comment
+  JS_STRING.source,                 // --- string, don't care about embedded eols
+  ES6_TSTR_SIMPLE.source,           // --- es6 template string (limited support)
+  JS_DIVISOR.source,                // $1: division operator
+  JS_REGEX.source                   // $2: last slash of regex
 ].join('|'), 'gm')
 
 
@@ -567,4 +579,3 @@ function jspp (options) {
 }
 
 export default jspp;
-//# sourceMappingURL=rollup-plugin-jscc.es.js.map
