@@ -26,7 +26,7 @@ jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny so
 
 **NOTE:**
 
-v0.2.0 is a complete rewrite of v0.1.x, there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
+v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
 Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) instead.
 
 ## Install
