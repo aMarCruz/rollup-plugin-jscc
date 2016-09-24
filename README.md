@@ -27,7 +27,7 @@ jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny so
 **NOTE:**
 
 v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
-Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings normalization and compaction of lines, in addition to the conditional removal of comments.
+Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines, in addition to the conditional removal of JS comments.
 
 ## Install
 
@@ -53,7 +53,7 @@ rollup({
 
 ```js
 //#set _DEBUG 1
-//#set _VERSION '2.0'
+
 /*#if _DEBUG
 import mylib from 'mylib-debug';
 //#else */
@@ -66,11 +66,12 @@ output:
 
 ```js
 import mylib from 'mylib-debug';
-mylib.log('Starting v2.0...');
+mylib.log('Starting v1.0.0...');
 ```
 
 That's it.
 
+\* From v0.2.1, jscc has the predefined `_VERSION` varname, in addition to `_FILE`.
 
 ## Documentation
 

@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { extname, relative } from 'path';
+import { extname, join, relative } from 'path';
 import { createFilter } from 'rollup-pluginutils';
 import { readFileSync } from 'fs';
 
@@ -76,7 +76,7 @@ var ENDING  = 2
 var R_ESCAPED = /(?=[-[{()*+?.^$|\\])/g
 
 // Matches a line with a directive, not including line-ending
-var S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?:(?=\s)(.*)|\/\/.*)?$/.source
+var S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?:(?=[ \t])(.*)|\/\/.*)?$/.source
 
 // Default opennig sequence of directives is ['//', '/*']
 var S_DEFAULT = '//|/\\*'
@@ -281,24 +281,43 @@ Parser.prototype = {
   }
 }
 
+function _getVersion () {
+  var path$$1 = process.cwd().replace(/\\/g, '/')
+  var pack, version = '?'
+
+  while (~path$$1.indexOf('/')) {
+    pack = join(path$$1, 'package.json')
+    try {
+      version = require(pack).version
+      break
+    } catch (_) {/**/}
+    path$$1 = path$$1.replace(/\/[^/]*$/, '')
+  }
+  return version
+}
+
 function parseOptions (file, opts) {
   if (!opts) { opts = {} }
+  if (!opts.values) { opts.values = {} }
 
   // sallow copy of the values, must be set per file
   var values = {}
   var source = opts.values
-  if (source) {
-    if (typeof source != 'object') {
-      throw new Error('values must be an plain object')
-    } else {
-      Object.keys(source).forEach(function (v) {
-        if (!VARNAME.test(v)) {
-          throw new Error(("invalid variable name: " + v))
-        }
-        values[v] = source[v]
-      })
-    }
+  if (typeof source != 'object') {
+    throw new Error('values must be an plain object')
   }
+
+  // grab _VERSION once in the source options
+  if (source._VERSION == null) {
+    source._VERSION = _getVersion()
+  }
+
+  Object.keys(source).forEach(function (v) {
+    if (!VARNAME.test(v)) {
+      throw new Error(("invalid variable name: " + v))
+    }
+    values[v] = source[v]
+  })
 
   // file is readonly and valid only for this instance
   Object.defineProperty(values, '_FILE', {
@@ -376,7 +395,7 @@ function preproc (code, filename, _options) {
   var match
 
   re.lastIndex = lastIndex = 0
-  debugger //eslint-disable-line
+
   while ((match = re.exec(code))) {
     var index = match.index
 

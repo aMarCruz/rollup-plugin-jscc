@@ -53,7 +53,7 @@ function testStr (file, expected, opts) {
   let result = generate(file, opts)
 
   result = normalize(result)
-  expect(result).toBe(expected)
+  expect(result).toContain(expected)
 }
 
 // The suites =============================================
@@ -61,11 +61,16 @@ function testStr (file, expected, opts) {
 describe('rollup-plugin-jscc', function () {
 
   it('by default uses JavaScript comments to start directives', function () {
-    testStr('defaults', '/* Hello World */\n')
+    testStr('defaults', '/* Hello World */')
   })
 
   it('predefined variable `_FILE` is the relative path of the current file', function () {
-    testFile('file-var')
+    testFile('def-file-var')
+  })
+
+  it('predefined variable `_VERSION` from package.json in the current path', function () {
+    const version = require('../package.json').version
+    testStr('def-version-var', '@version ' + version)
   })
 
   it('allows to define custom variables with the `values` option', function () {

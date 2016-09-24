@@ -1,6 +1,8 @@
 # rollup-plugin-jscc changes
 
 ### v0.2.1 - fixing issues
+- New predefined `_VERSION` varname contains `version` from the `package.json` file in the current working dir or some level up.
+- Fix the test of predefined `_FILE` varname.
 - Fix an issue with the space between keywords and expressions allowing line endings.
 
 ### v0.2.0 - getting better

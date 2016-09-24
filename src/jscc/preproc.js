@@ -28,7 +28,7 @@ export default function preproc (code, filename, _options) {
   let match
 
   re.lastIndex = lastIndex = 0
-  debugger //eslint-disable-line
+
   while ((match = re.exec(code))) {
     let index = match.index
 
