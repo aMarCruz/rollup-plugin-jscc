@@ -2,6 +2,7 @@
 
 ### v0.2.0 - getting better
 - It is a complete rewrite, ready for inclussion in the rollup wiki.
+- Fix issues with regexes.js in Windows.
 
 ### v0.1.3 - refactorization
 - More simple, less options, more tests.

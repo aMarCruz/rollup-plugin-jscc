@@ -4,42 +4,9 @@ import { createFilter } from 'rollup-pluginutils';
 import { readFileSync } from 'fs';
 
 /**
- * @module perf-regexes
- *
- * Optimized and powerful regexes for JavaScript
- */
-/* eslint-disable max-len */
-
-// can preceed regex, excludes `throw` and `new` from the keywords
-/** Matches valid multiline JS comments */
-
-
-/** Single line JS comments */
-
-
-/** Single and double quoted strings, take care about embedded eols */
-var JS_STRING = /"[^"\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^"\n\r\\]*)*"|'[^'\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^'\n\r\\]*)*'/g
-
-/** Matches literal regexes */
-
-
-/** Matches regex, captures in $1 a prefix, in $2 the regex without options */
-
-
-/** Matches HTML comments */
-
-
-/** Matches not empty lines */
-
-
-/** Matches empty lines */
-
-
-/** Matches trailing spaces of lines */
-
-/**
  * @module regexlist
  */
+
 // name=value in directives - $1:name, $2:value (including any comment)
 var VARPAIR = /^\s*(_[0-9A-Z][_0-9A-Z]*)\s*=?(.*)/
 
@@ -52,8 +19,11 @@ var EVLVARS = /(^|[^$\w\.])(_[0-9A-Z][_0-9A-Z]*)\b(?=[^$\w]|$)/g
 // replace varnames inside the code from $_VAR.prop to value
 var REPVARS = /(?:(\$_[0-9A-Z][_0-9A-Z]*)(\.[\w]+)?)(?=[\W]|$)/g
 
+// matches single and double quoted strings, take care about embedded eols
+var STRINGS = /"[^"\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^"\n\r\\]*)*"|'[^'\n\r\\]*(?:\\(?:\r\n?|[\S\s])[^'\n\r\\]*)*'/g
+
 // For replacing of jspreproc variables ($1 = prefix, $2 = varname)
-var _REPVARS = RegExp(JS_STRING.source + '|' + EVLVARS.source, 'g')
+var _REPVARS = RegExp(STRINGS.source + '|' + EVLVARS.source, 'g')
 
 /**
  * Method to perform the evaluation of the received string using
@@ -112,7 +82,7 @@ var S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)
 var S_DEFAULT = '//|/\\*'
 
 // Match a substring that includes the first unquoted `//`
-var R_LASTCMT = new RegExp(JS_STRING.source + '|(//)', 'g')
+var R_LASTCMT = new RegExp(STRINGS.source + '|(//)', 'g')
 
 
 /**
