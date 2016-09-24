@@ -1,6 +1,6 @@
-//#set __TRUE 1
-//#if __TRUE
+//#set _TRUE 1
+//#if _TRUE
 true
 //#endif
-//#set __STR 'foo'
-$__STR
+//#set _STR 'foo'
+$_STR

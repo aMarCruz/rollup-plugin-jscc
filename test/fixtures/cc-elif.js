@@ -1,9 +1,9 @@
-//#set __FOO 2
-//#if __FOO === 0
+//#set _FOO 2
+//#if _FOO === 0
 false
-//#elif __FOO === 1
+//#elif _FOO === 1
 false
-//#elif __FOO === 2
+//#elif _FOO === 2
 true
 //#else
 false

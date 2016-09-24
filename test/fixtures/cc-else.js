@@ -1,6 +1,6 @@
-//#set __FOO = false
-//#if __FOO
-false
+//#set _FOO = false
+//#if _FOO
+error
 //#else
 true
 //#endif

@@ -1,25 +1,25 @@
 <!DOCTYPE html>
 <!--
-  App main template
+  App main template (_TITLE is an external memvar)
   @license MIT
 -->
-<!--#set __SUFFIX 12345 -->
+<!--#set _SUFFIX 12345 //-->
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>$__TITLE</title>
+  <title>$_TITLE</title>
 </head>
 <body>
   <!--
-    this comment will be deleted!
+    all comments, except the jscc ones, will be preserved!
   -->
-  <h1>$__TITLE</h1>
-  <!-- and this -->
-  <!--#if __DEBUG -->
-  <script src="js/debug.js?$__SUFFIX"></script>
+  <h1>$_TITLE</h1>
+  <!-- #if -->
+  <!--#if _DEBUG //-->
+  <script src="js/debug.js?$_SUFFIX"></script>
   <!--#else -->
-  <script src="js/release.js?$__SUFFIX"></script>
+  <script src="js/release.js?$_SUFFIX"></script>
   <!--#endif -->
-  <script src="js/myapp.js?$__SUFFIX"></script>
+  <script src="js/myapp.js?$_SUFFIX"></script>
 </body>
 </html>

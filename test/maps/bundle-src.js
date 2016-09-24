@@ -1,13 +1,16 @@
+//#set _REPO = 'https://github.com/aMarCruz/rollup-plugin-jscc'
 /*
-  Testing sourcemaps
+  Testing sourcemaps with the jscc plugin.
+  $_REPO
+
   @license: MIT
 */
-
-/* eslint-disable no-undef */
-/* global $__TEST */
-//#set __TEST 1
-//#set __DEBUG 1
-//#set __CODE 'function () {\\n};\\n// jspp2 is cool!'
+//#if 0 // hide `global` from the processed code
+/* global $_TEST */
+//#endif
+//#set _TEST 1
+//#set _DEBUG 1
+//#set _CODE 'function () {\\n};\\n\\n// jscc is cool!'
 
 /* dummy */
 function preproc (code) {
@@ -15,12 +18,12 @@ function preproc (code) {
 }
 
 /* conditional "compilation" */
-/*#if __DEBUG
+/*#if _DEBUG
 function postproc (code) {
   console.log('This is a conditional, hidden block!')
-  return code + ' (DEBUG)'
+  return code + '\n// go to $_REPO and give your star!'
 }
-//#else */
+//#else //*/
 function postproc (code) {
   return code
 }
@@ -29,18 +32,18 @@ function postproc (code) {
 export default function jspp (options = {}) {
 
   var filter = function (id) {
-    return id || $__TEST ? $__TEST : true
+    return id ? $_TEST + 2 : $_TEST
   }
 
   return {
-//#if __DEBUG
+//#if _DEBUG
     // name for errors
     name: 'jspp',
 //#endif
     // comment
     run: function (code, id) {
       if (typeof code != 'string') {
-        code = '$__CODE'
+        code = '$_CODE'
       }
       if (!filter(id)) {
         return null
@@ -48,5 +51,5 @@ export default function jspp (options = {}) {
       return postproc(preproc(code, options))
     }
   }
-  // end
+  //#end
 }

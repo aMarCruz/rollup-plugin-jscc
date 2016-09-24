@@ -1,13 +1,13 @@
-//#set __FOO 2
-//#set __BAR 2
-//#set __BAZ 2
+//#set _FOO 2
+//#set _BAR 2
+//#set _BAZ 2
 
-//#if __FOO == 1
-//#elif __FOO == 2
+//#if _FOO == 1
+//#elif _FOO == 2
 true
-  //#if __BAR == 2
+  //#if _BAR == 2
 true
-    //#if __BAZ == 1
+    //#if _BAZ == 1
     //#else
 true
     //#endif

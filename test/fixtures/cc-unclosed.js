@@ -1,3 +1,3 @@
-//#set __FOO
-//#if __FOO
+//#set _FOO
+//#if _FOO
 true

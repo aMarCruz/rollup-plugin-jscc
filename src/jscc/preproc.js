@@ -3,64 +3,54 @@
  * @module
  */
 import MagicString from 'magic-string'
-import parseOptions from './parseoptions'
-import CodeParser from './codeparser'
-import { remapVars } from './remapvars'
+import Parser from './parser'
+import parseOptions from './parse-options'
+import remapVars from './remap-vars'
 
-import { JS_MLCOMM, JS_SLCOMM, HTML_COMM,
-  JS_STRING, JS_DIVISOR, JS_REGEX, ES6_TSTR_SIMPLE } from 'perf-regexes'
-
-const QBLOCKS = RegExp([
-  JS_MLCOMM.source,                 // --- multi-line comment
-  JS_SLCOMM.source,                 // --- single-line comment
-  HTML_COMM.source,                 // --- html multi-line comment
-  JS_STRING.source,                 // --- string, don't care about embedded eols
-  ES6_TSTR_SIMPLE.source,           // --- es6 template string (limited support)
-  JS_DIVISOR.source,                // $1: division operator
-  JS_REGEX.source                   // $2: last slash of regex
-].join('|'), 'gm')
-
+/*
+function fixEnd (code, pos) {
+  if (code[pos] === '\r' && code[pos + 1] === '\n') ++pos
+  return pos + 1
+}*/
 
 export default function preproc (code, filename, _options) {
 
-  const opts      = parseOptions(filename, _options)
+  const options   = parseOptions(filename, _options)
   const magicStr  = new MagicString(code)
-  const parser    = new CodeParser(opts)
+  const parser    = new Parser(options)
 
-  let changes = false
-  let output  = true
-  let re = QBLOCKS
+  const re = parser.getRegex()  // $1:keyword, $2:expression
 
+  let changes   = false
+  let output    = true
+  let hideStart = 0
   let lastIndex
   let match
 
-  // normalize eols - replacement here does NOT affect the result
-  if (~code.indexOf('\r')) {
-    code = code.replace(/\r\n/g, '\n\n').replace(/\r/g, '\n')
-  }
   re.lastIndex = lastIndex = 0
-
+  debugger //eslint-disable-line
   while ((match = re.exec(code))) {
-
     let index = match.index
-    let block = match[0]
-    if (match[1] || match[2] || /['"`]/.test(block[0])) continue
 
-    let comment = parser.parse(code, block, index)
-    if (comment) {
-      pushCache(code.slice(lastIndex, index), lastIndex, output)
+    if (output) {
+      pushCache(code.slice(lastIndex, index), lastIndex)
+    }
+    lastIndex = re.lastIndex
 
-      block = comment.block   // parse can change the length
-
-      if (comment.type === 'JSCC') {
-        re.lastIndex = index + block.length
-        output = parser.checkOutput(comment)
-        pushCache(block, index, false)
-      } else {
-        pushCache(block, index, output && canOut(block))
+    if (output === parser.parse(match)) {
+      if (output) {
+        removeBlock(index, lastIndex)
       }
-
-      lastIndex = re.lastIndex
+    } else {
+      output = !output
+      if (output) {
+        // output begins, remove the hidden block now
+        removeBlock(hideStart, lastIndex)
+      } else {
+        // output ends, for now, all we do is to save
+        // the pos where the hidden block begins
+        hideStart = index
+      }
     }
   }
 
@@ -70,40 +60,42 @@ export default function preproc (code, filename, _options) {
     pushCache(code.slice(lastIndex), lastIndex, output)
   }
 
-  // by getting the code from magicString, we keep original line-endings
-  let result = {
-    code: magicStr.toString()
+  // done, return an object if there was changes
+  if (changes) {
+    let result = {
+      code: magicStr.toString()
+    }
+    if (changes && options.sourceMap) {
+      result.map = magicStr.generateMap({ hires: true })
+    }
+    return result
   }
-  if (changes && opts.sourceMap) {
-    result.map = magicStr.generateMap({ hires: true })
-  }
-  return result
+
+  return code
 
 
   // helpers ==============================================
 
-  function pushCache (str, start, out) {
-    if (!str) return
-
-    if (!out) {
-      magicStr.overwrite(start, start + str.length, ' ')
-      changes = true
-
-    } else if (~str.indexOf('$__')) {
-      changes = remapVars(magicStr, opts.values, str, start) || changes
+  function pushCache (str, start) {
+    if (str && ~str.indexOf('$_')) {
+      changes = remapVars(magicStr, options.values, str, start) || changes
     }
   }
 
-  // Array.find is not available in node 0.12
-  function canOut (str) {
-    let oc = opts.comments
+  function removeBlock (start, end) {
+    let block = ''
 
-    if (oc && oc !== true) {
-      for (var i = 0; i < oc.length; i++) {
-        if (oc[i].test(str)) return true
+    if (options.keepLines) {
+      block = code.slice(start, end).replace(/[^\r\n]+/g, '')
+
+    // @TODO: Remove first jscc lines
+    } else if (start) {
+      --start
+      if (code[start] === '\n' && code[start - 1] === '\r') {
+        --start
       }
-      oc = false
     }
-    return oc
+    magicStr.overwrite(start, end, block)
+    changes = true
   }
 }

@@ -1,5 +1,5 @@
-//#set __TRUE true
-//#set __ONE 1
-$__TRUE==$__ONE
-//#set __STR = 'foo'
-"$__STR"
+//#set _TRUE true
+//#set _ONE 1
+$_TRUE==$_ONE
+//#set _STR = 'foo'
+"$_STR"

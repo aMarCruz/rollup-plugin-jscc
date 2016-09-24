@@ -1,12 +1,12 @@
-//#set __EXPR = 0
-//#if __EXPR
+//#set _EXPR = 0
+//#if _EXPR
 false
 //#endif
-//#set __EXPR = !__EXPR
-//#if __EXPR
+//#set _EXPR = !_EXPR
+//#if _EXPR
 true
 //#endif
-//#set __EXPR = 'foobar'.slice(0,3)
-//#if __EXPR === 'foo'
+//#set _EXPR = 'foobar'.slice(0,3)
+//#if _EXPR === 'foo'
 foo
 //#endif

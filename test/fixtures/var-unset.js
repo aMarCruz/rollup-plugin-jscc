@@ -1,7 +1,7 @@
-//#ifnset __FOO
-'__FOO unset'
+//#ifnset _TRUE
+'_TRUE unset'
 //#endif
-//#unset __FOO
-//#ifnset __FOO
+//#unset _TRUE
+//#ifnset _TRUE
 true
 //#endif

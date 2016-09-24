@@ -1,8 +1,8 @@
 /*
     Parser for conditional comments
  */
+import { STRINGS, VARPAIR, VARNAME } from './revars'
 import evalExpr from './evalexpr'
-import { VARPAIR, VARNAME } from './revars'
 
 const NONE = 0
 const IF   = 1
@@ -12,16 +12,17 @@ const WORKING = 0
 const TESTING = 1
 const ENDING  = 2
 
-const JSCC = /^(?:\/\/|\/\*|<!--)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?=[ \t\n\*]|-->|$)(-->|.*)/
-const COMM = /^(?:\/\/|\/\*|<!--)/
+// These characters have to be escaped.
+const R_ESCAPED = /(?=[-[{()*+?.^$|\\])/g
 
-function atStart (code, pos) {
-  --pos
-  do {
-    if (pos < 0 || code[pos] === '\n') return true
-  } while (/\s/.test(code[pos--]))
-  return false
-}
+// Matches a line with a directive, not including line-ending
+const S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?:(?=\s)(.*)|\/\/.*)?$/.source
+
+// Default opennig sequence of directives is ['//', '/*']
+const S_DEFAULT = '//|/\\*'
+
+// Match a substring that includes the first unquoted `//`
+const R_LASTCMT = new RegExp(STRINGS.source + '|(//)', 'g')
 
 
 /**
@@ -30,8 +31,7 @@ function atStart (code, pos) {
  * @param {object} options - The global options
  * @class
  */
-export default function CodeParser (options) {
-
+export default function Parser (options) {
   this.options = options
   this.cc = [{
     state: WORKING,
@@ -40,7 +40,7 @@ export default function CodeParser (options) {
 }
 
 
-CodeParser.prototype = {
+Parser.prototype = {
 
   _emitError (str) {
     //str = `jspp [${ this.cc.fname || 'input' }] : ${ str }`
@@ -48,21 +48,32 @@ CodeParser.prototype = {
   },
 
   /**
-   * Removes trailing singleline comment or the start of multiline comment
-   * and checks if required expression is present.
+   * Retrieve the required expression with the jscc comment removed.
+   * It is necessary to skip quoted strings to avoid truncation
+   * of expressions like "file:///path"
    *
    * @param   {string} ckey - The key name
    * @param   {string} expr - The extracted expression
    * @returns {string}      Normalized expression.
    */
   _normalize (ckey, expr) {
-    expr = expr.replace(/(?:\*\/|-->).*/, '').trim()
-
-    // all keywords must have an expression, except `#else/#endif`
-    if (!expr && ckey !== 'else' && ckey !== 'endif') {
+    // anything after `#else/#endif` is ignored
+    if (ckey === 'else' || ckey === 'endif') {
+      return ''
+    }
+    // ...other keywords must have an expression
+    if (!expr) {
       this._emitError('Expression expected for #' + ckey)
     }
-    return expr
+    let match
+    R_LASTCMT.lastIndex = 0
+    while ((match = R_LASTCMT.exec(expr))) {
+      if (match[1]) {
+        expr = expr.slice(0, match.index)
+        break
+      }
+    }
+    return expr.trim()
   },
 
   /**
@@ -83,7 +94,7 @@ CodeParser.prototype = {
   },
 
   // Inner helper - throws if the current block is not of the expected type
-  checkInBlock (info, key, mask) {
+  _checkBlock (info, key, mask) {
     let block = info.block
     let isIn  = block && block === (block & mask)
 
@@ -93,16 +104,16 @@ CodeParser.prototype = {
   /**
    * Parses conditional comments to determinate if we need disable the output.
    *
-   * @param   {Object} data - Object with the directive, created by parse
-   * @returns {boolean}       Output state, `false` for hide the output.
+   * @param   {Array} match - Object with the key/value of the directive
+   * @returns {boolean}       Output state, `false` to hide the output.
    */
-  checkOutput (data) {
+  parse (match) {
     let cc     = this.cc
     let last   = cc.length - 1
     let ccInfo = cc[last]
     let state  = ccInfo.state
-    let key    = data.key
-    let expr   = this._normalize(key, data.expr)
+    let key    = match[1]
+    let expr   = this._normalize(key, match[2])
 
     switch (key) {
       // Conditional blocks -- `#if-ifset-ifnset` pushes the state and `#endif` pop it
@@ -117,7 +128,7 @@ CodeParser.prototype = {
         break
 
       case 'elif':
-        this.checkInBlock(ccInfo, key, IF)
+        this._checkBlock(ccInfo, key, IF)
         if (state === TESTING && this._getValue('if', expr)) {
           ccInfo.state = state = WORKING
         } else if (state === WORKING) {
@@ -126,13 +137,13 @@ CodeParser.prototype = {
         break
 
       case 'else':
-        this.checkInBlock(ccInfo, key, IF)
+        this._checkBlock(ccInfo, key, IF)
         ccInfo.block = ELSE
         ccInfo.state = state = state === TESTING ? WORKING : ENDING
         break
 
       case 'endif':
-        this.checkInBlock(ccInfo, key, IF | ELSE)
+        this._checkBlock(ccInfo, key, IF | ELSE)
         cc.pop()
         --last
         state = cc[last].state
@@ -163,51 +174,24 @@ CodeParser.prototype = {
     return state === WORKING
   },
 
-  _adjustBlock (block) {
-    // special case for hidden blocks
-    if (block.slice(0, 2) === '/*') {
-      let end = block.search(/\*\/|-->|\n/)
-
-      if (~end && block[end] === '\n') {
-        // trim avoids cut original \r\n eols
-        block = block.slice(0, end).trim()
-      }
-    }
-    return block
-  },
-
-  /**
-   * Check if the line is a conditional comment
-   *
-   * @param   {string} code  - Full source code (untouched)
-   * @param   {string} block - Unparsed comment block
-   * @param   {number} start - Offset of comment inside `code`
-   * @returns {object}         Object with info about the comment.
-   */
-  parse (code, block, start) {
-    let match  = block.match(COMM)
-    let result = false
-
-    if (match) {
-      match = block.match(JSCC)
-      if (match && atStart(code, start)) {
-        block  = this._adjustBlock(block)
-        result = { type: 'JSCC', block, key: match[1], expr: match[2] }
-      } else {
-        result = { type: 'COMM', block }
-      }
-    }
-    return result
-  },
-
   /**
    * Check unclosed blocks before vanish.
    */
   close () {
-    if (this.cc.length > 1) {
-      this._emitError('Unclosed conditional block')
+    if (this.cc.length !== 1 || this.cc[0].state !== WORKING) {
+      this._emitError('Unexpected end of file')
     }
     this.options = false
+  },
+
+  getRegex () {
+    let list = this.options.prefixes
+
+    if (list) list = list.map(s => s.replace(R_ESCAPED, '\\')).join('|')
+    else list = S_DEFAULT
+
+    list = S_RE_BASE.replace('@', list)
+    return RegExp(list, 'gm')
   },
 
   _set (s) {

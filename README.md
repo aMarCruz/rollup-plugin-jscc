@@ -5,24 +5,34 @@
 
 # rollup-plugin-jscc
 
-JavaScript preprocessor for [rollup](http://rollupjs.org/)
+Conditional compilation (and declaration of ES6 imports) for [rollup](http://rollupjs.org/)
 
-Featuring some of the C preprocessor characteristics through special JavaScript comments, jscc can be used in sources with a JavaScript-like syntax to build multiple versions of your software from the same code base.
+Featuring some of the C preprocessor characteristics through special, configurable comments, jscc can be used in any type of files to build multiple versions of your software from the same code base.
 
 With jscc, you have:
 
-* Conditional exclusion of code, based on variables and JavaScript expressions
+* Conditional inclusion/exclusion of code, based on compile-time variables*
+* Compile-time variables with all the power of JavaScript expressions
 * Replacement of variables inside the source (by value at compile-time)
 * Source Map support
 
-This plugin is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Maps support but without the file importer (rollup does this better).
+\* This feature allows you the conditional declaration of ES6 imports (See the [example](#example)).
 
-jscc is **not** a minifier nor a beautifier tool, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) to remove comments and empty lines.
+Because jscc is a preprocessor, it is implemented as a file loader.
+
+jscc is **not** a minifier tool, it only do very well that it does...
+
+jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Map support but without the file importer (rollup does this better) nor the line compactation and normalization (you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) for this).
+
+**NOTE:**
+
+v0.2.0 is a complete rewrite of v0.1.x, there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
+Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) instead.
 
 ## Install
 
 ```sh
-npm install rollup-plugin-jscc --save-dev
+npm i rollup-plugin-jscc -D
 ```
 
 ## Usage
@@ -39,28 +49,44 @@ rollup({
 }).then(...)
 ```
 
+## Example
+
+```js
+//#set _DEBUG 1
+//#set _VERSION '2.0'
+/*#if _DEBUG
+import mylib from 'mylib-debug';
+//#else // */
+import mylib from 'mylib';
+//#endif
+mylib.log('Starting v$_VERSION...');
+```
+
+output:
+
+```js
+import mylib from 'mylib-debug';
+mylib.log('Starting v2.0...');
+```
+
 That's it.
 
-Because jscc is a preprocessor, it was implemented as a file loader.
 
-By default, only the .js files are processed, but it can be useful in other sources, like html.
-You can restrict or expand this using the `rollup` global options "include" and "exclude", or the "extensions" option (see below).
+## Documentation
 
-Please read about the syntax and options in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
+In [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
 
-**Note:**
+- [Options](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Home)
+- [Basic Syntax](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Syntax)
+- [Keywords](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Keywords)
+- [Examples & Tricks](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Examples)
 
-jspreproc is a mature, proven tool, but does not handles ES6 strings, so this is an area that needs testing before to use in production (this plugin was developed to replace jspreproc in the construction of new versions [riot](https://riotjs.com), along with rollup and bablé).
-
-## Known Issues
-
-Regexes starting with `//` or `/>` breaks the parsing. Please follow the best-practices and use `/\/` and `/\>`.
 
 ## TODO
 
 This is work in progress, so please update jscc constantly, I hope the first stable version does not take too long.
 
-Expected features in future versions:
+Expected:
 
 - [ ] 100% test coverage and more tests
 - [ ] Explanatory error messages, with location of the error
@@ -74,6 +100,10 @@ Expected features in future versions:
 ---
 
 \* _For me, write in english is 10x harder than coding JS, so contributions are welcome..._
+
+
+Don't forget to give me your star!
+
 
 [build-image]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-jscc.svg
 [build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-jscc

@@ -1,6 +1,6 @@
-//#if __FALSE
+//#if _FALSE
 false
 //#endif
-//#if __TRUE
+//#if _TRUE
 true
 //#endif

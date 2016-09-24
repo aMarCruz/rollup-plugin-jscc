@@ -1,7 +1,7 @@
 
-//! $__FILE
-//! $___FILE $_FILE _$__FILE _$_FILE$__FILE $__FILE$
+// fixtures/file-var.js
+// _fixtures/file-var.js $__FILE $FILE _FILE$
 export default function main () {
-  //! out from "$__FILE" //
+  // out from "fixtures/file-var.js"
 }
-// !end
+//fixtures/file-var.js

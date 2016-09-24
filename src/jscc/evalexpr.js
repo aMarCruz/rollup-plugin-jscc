@@ -1,14 +1,8 @@
 
-import { JS_STRING, JS_DIVISOR, JS_REGEX } from 'perf-regexes'
-import { EVLVARS } from './revars'
+import { STRINGS, EVLVARS } from './revars'
 
-// For replacing of jspreproc variables (#set)
-const _REPVARS = RegExp(
-    JS_STRING.source  + '|' +
-    JS_DIVISOR.source + '|' +
-    JS_REGEX.source   + '|' +  // $1 = '/' if is a regex
-    EVLVARS.source,            // $2 = prefix, $3 = var name
-  'g')
+// For replacing of jspreproc variables ($1 = prefix, $2 = varname)
+const _REPVARS = RegExp(STRINGS.source + '|' + EVLVARS.source, 'g')
 
 /**
  * Method to perform the evaluation of the received string using
@@ -21,7 +15,7 @@ const _REPVARS = RegExp(
 export default function evalExpr (str, ctx) {
 
   // var replacement
-  function _repVars (m, _, p, v) {
+  function _repVars (m, p, v) {
     return v
       ? p + (v in ctx ? 'this.' + v : v in global ? 'global.' + v : 'undefined')
       : m
@@ -39,7 +33,7 @@ export default function evalExpr (str, ctx) {
     let fn = new Function('', 'return (' + expr + ');')
     result = fn.call(ctx)
   } catch (e) {
-    console.error(`In expression: ${ expr }`)  // eslint-disable-line no-console
+    e.message += ` in expression: ${ expr }`
     throw e
   }
 

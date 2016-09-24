@@ -1,1 +1,1 @@
-//#set __FOO __FOO.foo.bar
+//#set _FOO _FOO.foo.bar

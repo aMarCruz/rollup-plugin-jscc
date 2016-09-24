@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<!--
+  App main template (_TITLE is an external memvar)
+  @license MIT
+-->
+//#set _SUFFIX 12345
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>$_TITLE</title>
+</head>
+<body>
+  <!--
+    all the jscc comments will be removed, so you can use them in html
+  -->
+  <h1>$_TITLE</h1>
+  <!-- #if -->
+  //#if _DEBUG
+  <script src="js/debug.js?$_SUFFIX"></script>
+  //#else
+  <script src="js/release.js?$_SUFFIX"></script>
+  //#endif
+  <script src="js/myapp.js?$_SUFFIX"></script>
+</body>
+</html>

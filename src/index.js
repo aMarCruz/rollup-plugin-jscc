@@ -8,7 +8,7 @@ import { readFileSync } from 'fs'
 
 export default function jspp (options) {
 
-  const filter = createFilter(options)
+  const filter = createFilter(options, ['.js', '.jsx', '.tag'])
 
   return {
 

@@ -1,4 +1,4 @@
-//#set __UNDEF
-//#if __INDEF === undefined
+//#set _UNDEF
+//#if _UNDEF === undefined
 true
 //#endif

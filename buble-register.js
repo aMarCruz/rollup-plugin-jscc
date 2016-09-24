@@ -1,15 +1,14 @@
 /**
- * the loading of buble/register fail in node v0.12, fix it here.
+ * The loading of buble/register can fail, try two places here.
  */
-/* eslint-disable max-len */
 'use strict'
 
-var bubleRegister
-
 try {
-  bubleRegister = require.resolve('./node_modules/rollup-plugin-buble/node_modules/buble/register')
+  module.exports = require('buble/register')
 } catch (_) {
-  bubleRegister = require.resolve('buble/register')
+  try {
+    module.exports = require('node_modules/rollup-plugin-buble/node_modules/buble/register')
+  } catch (e) {
+    throw new Error('buble/register not found. Please install Bublé with `npm i buble -D`.')
+  }
 }
-
-module.exports = require(bubleRegister)
