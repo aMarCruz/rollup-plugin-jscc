@@ -50,6 +50,7 @@
     "rollup-pluginutils": "^1.5.2"
   },
   "devDependencies": {
+    "buble": "^0.14.0",
     "eslint": "^3.6.0",
     "expect": "^1.20.2",
     "mocha": "^3.0.2",
