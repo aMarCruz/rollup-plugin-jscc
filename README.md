@@ -20,7 +20,7 @@ With jscc, you have:
 
 Because jscc is a preprocessor, it is implemented as a file loader.
 
-jscc is **not** a minifier tool, it only do very well that it does...
+jscc is **not** a minifier tool, it only does well that it does...
 
 jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Map support but without the file importer (rollup does this better).
 
