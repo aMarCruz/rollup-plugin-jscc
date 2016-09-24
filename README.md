@@ -77,7 +77,7 @@ That's it.
 
 You can read in the Wiki about:
 
-- [Options](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Home)
+- [Options](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Options)
 - [Basic Syntax](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Syntax)
 - [Keywords](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Keywords)
 - [Examples & Tricks](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Examples)
