@@ -56,7 +56,7 @@ rollup({
 //#set _VERSION '2.0'
 /*#if _DEBUG
 import mylib from 'mylib-debug';
-//#else // */
+//#else */
 import mylib from 'mylib';
 //#endif
 mylib.log('Starting v$_VERSION...');

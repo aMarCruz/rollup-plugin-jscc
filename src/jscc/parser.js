@@ -16,7 +16,7 @@ const ENDING  = 2
 const R_ESCAPED = /(?=[-[{()*+?.^$|\\])/g
 
 // Matches a line with a directive, not including line-ending
-const S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?:(?=\s)(.*)|\/\/.*)?$/.source
+const S_RE_BASE = /^[ \t\f\v]*(?:@)#(if|ifn?set|el(?:if|se)|endif|set|unset|error)(?:(?=[ \t])(.*)|\/\/.*)?$/.source
 
 // Default opennig sequence of directives is ['//', '/*']
 const S_DEFAULT = '//|/\\*'

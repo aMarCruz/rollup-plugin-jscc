@@ -16,12 +16,6 @@ parserOptions:
   sourceType: "module"
 
   ###########################################################################
-  #   GLOBALS                                                               #
-  ###########################################################################
-
-#globals:
-
-  ###########################################################################
   #   RECOMMENDED PRESET - mainly for possible errors                       #
   #   See https://github.com/eslint/eslint/blob/master/conf/eslint.json     #
   ###########################################################################
@@ -76,7 +70,7 @@ rules:
   no-multi-str: 2               # disallow use of multiline strings
   no-native-reassign: 2         # disallow reassignments of native objects
   no-new-func: 2                # disallow use of new operator for Function object
-  no-new-wrappers: 2            # disallows creating new instances of String, Number, and Boolean
+  no-new-wrappers: 2            # disallow creating new instances of String, Number, and Boolean
   no-new: 2                     # disallow use of new operator when not part of the assignment or comparison
   no-octal-escape: 2            # disallow use of octal escape sequences in string literals
   no-proto: 2                   # disallow usage of __proto__ property

@@ -1,5 +1,8 @@
 # rollup-plugin-jscc changes
 
+### v0.2.1 - fixing issues
+- Fix an issue with the space between keywords and expressions allowing line endings.
+
 ### v0.2.0 - getting better
 - It is a complete rewrite, ready for inclussion in the rollup wiki.
 - Fix issues with bublé inclussion and regexes.js in Windows.

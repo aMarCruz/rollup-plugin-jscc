@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jscc",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Conditional comments and code cleanup for rollup, based on jspreproc",
   "main": "dist/rollup-plugin-jscc.cjs.js",
   "module": "dist/rollup-plugin-jscc.es.js",
