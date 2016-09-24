@@ -22,12 +22,12 @@ Because jscc is a preprocessor, it is implemented as a file loader.
 
 jscc is **not** a minifier tool, it only do very well that it does...
 
-jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Map support but without the file importer (rollup does this better) nor the line compactation and normalization (you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) for this).
+jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Map support but without the file importer (rollup does this better).
 
 **NOTE:**
 
 v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
-Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup) instead.
+Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings normalization and compaction of lines, in addition to the conditional removal of comments.
 
 ## Install
 
