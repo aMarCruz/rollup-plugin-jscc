@@ -1,5 +1,5 @@
 /*
- plugin version 1.0
+  @version v1.0
 */
 var myapp = (function () {
   'use strict';

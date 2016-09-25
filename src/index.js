@@ -3,12 +3,16 @@
  * @module
  */
 import preproc from './jscc/preproc'
+import checkOptions from './jscc/check-options'
 import createFilter from './util/filter'
 import { readFileSync } from 'fs'
 
 export default function jspp (options) {
+  if (!options) options = {}
 
   const filter = createFilter(options, ['.js', '.jsx', '.tag'])
+
+  options = checkOptions(options)
 
   return {
 

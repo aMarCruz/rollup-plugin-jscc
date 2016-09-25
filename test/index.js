@@ -293,7 +293,7 @@ describe('SourceMap support', function () {
         moduleName: 'myapp',
         sourceMap: 'inline',
         sourceMapFile: 'maps/bundle.js', // generates sorce filename w/o path
-        banner: '/*\n plugin version 1.0\n*/',
+        banner: '/*\n  @version v1.0\n*/',
         footer: '/* follow me on Twitter! @amarcruz */'
       })
       let code = result.code + '\n//# source' + 'MappingURL=' + result.map.toUrl()

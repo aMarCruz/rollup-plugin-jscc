@@ -285,43 +285,13 @@ Parser.prototype = {
   }
 }
 
-function _getVersion () {
-  var path$$1 = process.cwd().replace(/\\/g, '/')
-  var pack, version = '?'
-
-  while (~path$$1.indexOf('/')) {
-    pack = path.join(path$$1, 'package.json')
-    try {
-      version = require(pack).version
-      break
-    } catch (_) {/**/}
-    path$$1 = path$$1.replace(/\/[^/]*$/, '')
-  }
-  return version
-}
-
 function parseOptions (file, opts) {
-  if (!opts) { opts = {} }
-  if (!opts.values) { opts.values = {} }
 
-  // sallow copy of the values, must be set per file
+  // shallow copy of the values, must be set per file
   var values = {}
   var source = opts.values
-  if (typeof source != 'object') {
-    throw new Error('values must be an plain object')
-  }
 
-  // grab _VERSION once in the source options
-  if (source._VERSION == null) {
-    source._VERSION = _getVersion()
-  }
-
-  Object.keys(source).forEach(function (v) {
-    if (!VARNAME.test(v)) {
-      throw new Error(("invalid variable name: " + v))
-    }
-    values[v] = source[v]
-  })
+  Object.keys(source).forEach(function (v) { values[v] = source[v] })
 
   // file is readonly and valid only for this instance
   Object.defineProperty(values, '_FILE', {
@@ -329,16 +299,10 @@ function parseOptions (file, opts) {
     enumerable: true
   })
 
-  // sequence starting a directive, default is `//|/*` (JS comment)
-  var prefixes = opts.prefixes
-  if (typeof prefixes == 'string') {
-    prefixes = [prefixes]
-  }
-
   return {
     sourceMap: opts.sourceMap !== false,
     keepLines: !!opts.keepLines,
-    prefixes: prefixes,
+    prefixes: opts.prefixes,
     values: values
   }
 }
@@ -471,6 +435,48 @@ function preproc (code, filename, _options) {
   }
 }
 
+function checkOptions (opts) {
+  if (!opts) { opts = {} }
+
+  var values = opts.values
+  if (values) {
+    if (typeof opts.values != 'object') {
+      throw new Error('jscc values must be a plain object')
+    }
+    Object.keys(opts.values).forEach(function (v) {
+      if (!VARNAME.test(v)) {
+        throw new Error(("invalid variable name: " + v))
+      }
+    })
+  } else {
+    values = opts.values = {}
+  }
+
+  // set _VERSION once in the options
+  if (values._VERSION == null) {
+    var path$$1 = process.cwd().replace(/\\/g, '/')
+    var pack, version = '?'
+
+    while (~path$$1.indexOf('/')) {
+      pack = path.join(path$$1, 'package.json')
+      try {
+        version = require(pack).version
+        break
+      } catch (_) {/**/}
+      path$$1 = path$$1.replace(/\/[^/]*$/, '')
+    }
+    values._VERSION = version
+  }
+
+  // sequence starting a directive, default is `//|/*` (JS comment)
+  var prefixes = opts.prefixes
+  if (typeof prefixes == 'string') {
+    opts.prefixes = [prefixes]
+  }
+
+  return opts
+}
+
 /**
  * Creates a filter for the options `include`, `exclude`, and `extensions`.
  * It filter out names starting with `\0`.
@@ -502,8 +508,11 @@ function _createFilter (opts, exts) {
  * @module
  */
 function jspp (options) {
+  if (!options) { options = {} }
 
   var filter = _createFilter(options, ['.js', '.jsx', '.tag'])
+
+  options = checkOptions(options)
 
   return {
 
