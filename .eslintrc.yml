@@ -174,3 +174,22 @@ rules:
   object-curly-spacing:           # require spaces inside brackets
     - 2
     - "always"
+  #
+  #   ES6
+  #
+  arrow-spacing: 2
+  no-confusing-arrow: 2
+  no-duplicate-imports:
+    - 2
+    - includeExports: true
+  no-useless-computed-key: 2
+  no-useless-rename: 2
+  no-restricted-syntax:
+    - 2
+    - "ForOfStatement"
+  no-var: 0
+  prefer-const:
+    - 2
+    - destructuring: "all"
+  prefer-template: 2
+  template-curly-spacing: 2

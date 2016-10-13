@@ -1,5 +1,9 @@
 # rollup-plugin-jscc changes
 
+### v0.2.2 - jscc own repo
+- The staring sequence of HTML comments (`'<!--'`) is included in the predefined prefixes.
+- jscc was moved to its own [github repository](https://github.com/aMarCruz/jscc) and has 100% coverage.
+
 ### v0.2.1 - fixing issues
 - New predefined `_VERSION` varname contains `version` from the `package.json` file in the current working dir or some level up.
 - Fix the test of predefined `_FILE` varname.

@@ -18,7 +18,7 @@ With jscc, you have:
 
 \* This feature allows you the conditional declaration of ES6 imports (See the [example](#example)).
 
-Because jscc is a preprocessor, it is implemented as a file loader.
+Because this plugin is a preprocessor, it is implemented as a file loader.
 
 jscc is **not** a minifier tool, it only does well that it does...
 
@@ -26,7 +26,7 @@ jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny so
 
 **NOTE:**
 
-v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/rollup-plugin-jscc/wiki).
+v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/jscc/wiki).
 Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines, in addition to the conditional removal of JS comments.
 
 ## Install
@@ -59,6 +59,7 @@ import mylib from 'mylib-debug';
 //#else */
 import mylib from 'mylib';
 //#endif
+
 mylib.log('Starting v$_VERSION...');
 ```
 
@@ -66,6 +67,7 @@ output:
 
 ```js
 import mylib from 'mylib-debug';
+
 mylib.log('Starting v1.0.0...');
 ```
 
@@ -75,28 +77,20 @@ That's it.
 
 ## Documentation
 
-You can read in the Wiki about:
+You can read in the jscc Wiki about:
 
-- [Options](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Options)
-- [Basic Syntax](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Syntax)
-- [Keywords](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Keywords)
-- [Examples & Tricks](https://github.com/aMarCruz/rollup-plugin-jscc/wiki/Examples)
+- [Options](https://github.com/aMarCruz/jscc/wiki/Options)
+- [Syntax](https://github.com/aMarCruz/jscc/wiki/Syntax)
+- [Keywords](https://github.com/aMarCruz/jscc/wiki/Keywords)
+- [Examples & Tricks](https://github.com/aMarCruz/jscc/wiki/Examples)
 
 
-## TODO
+## What's New
 
-This is work in progress, so please update jscc constantly, I hope the first stable version does not take too long.
+- The staring sequence of HTML comments (`'<!--'`) is included in the predefined prefixes.
 
-Expected:
-
-- [ ] 100% test coverage and more tests
-- [ ] Explanatory error messages, with location of the error
-- [ ] Configuration from the file system
-- [ ] jscc own repository (independent version, usable by other tools)
-- [ ] async mode
-- [ ] Better documentation*
-- [ ] Syntax hilighter for some editores
-- [ ] You tell me...
+From v0.2.2, the jscc codebase was moved to its own [github repository](https://github.com/aMarCruz/jscc) and has 100% coverage.
+Test for node v0.12 is not included in this plugin, but it is in the jscc repo.
 
 ---
 

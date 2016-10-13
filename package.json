@@ -1,21 +1,21 @@
 {
   "name": "rollup-plugin-jscc",
-  "version": "0.2.1",
-  "description": "Conditional comments and code cleanup for rollup, based on jspreproc",
-  "main": "dist/rollup-plugin-jscc.cjs.js",
+  "version": "0.2.2",
+  "description": "Conditional comments and variable replacement for rollup, based on jscc",
+  "main": "dist/rollup-plugin-jscc.js",
   "module": "dist/rollup-plugin-jscc.es.js",
   "jsnext:main": "dist/rollup-plugin-jscc.es.js",
   "engines": {
-    "node": ">=0.12"
+    "node": ">=4.0"
   },
   "scripts": {
-    "test": "node-version-gte-4 && mocha || mocha --compilers js:./buble-register",
-    "lint": "node-version-gte-4 && eslint src test/index.js || node-version-lt-4",
+    "test": "mocha",
+    "lint": "eslint src test/index.js",
     "pretest": "npm run build:cjs",
     "build": "rm -rf dist/* && npm run build:cjs && npm run build:es6",
-    "build:cjs": "rollup -c -f cjs -o dist/rollup-plugin-jscc.cjs.js",
+    "build:cjs": "rollup -c -f cjs -o dist/rollup-plugin-jscc.js",
     "build:es6": "rollup -c -f es -o dist/rollup-plugin-jscc.es.js",
-    "prepublish": "npm run lint && npm run build:es6 && npm test"
+    "prepublish": "npm run lint && npm test && npm run build"
   },
   "files": [
     "dist",
@@ -23,7 +23,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/aMarCruz/rollup-plugin-jscc"
+    "url": "git+https://github.com/aMarCruz/rollup-plugin-jscc.git"
   },
   "keywords": [
     "rollup",
@@ -32,8 +32,11 @@
     "es2015",
     "es6",
     "modules",
+    "preproccesor",
     "jspreproc",
-    "conditional comments"
+    "jscc",
+    "conditional comments",
+    "compilation"
   ],
   "author": {
     "name": "aMarCruz",
@@ -51,10 +54,10 @@
   },
   "devDependencies": {
     "buble": "^0.14.0",
-    "eslint": "^3.6.0",
+    "eslint": "^3.7.1",
     "expect": "^1.20.2",
+    "jscc": "^0.3.0",
     "mocha": "^3.0.2",
-    "node-version-check": "^2.1.1",
     "rollup": "^0.36.0",
     "rollup-plugin-buble": "^0.14.0",
     "rollup-plugin-node-resolve": "^2.0.0"
