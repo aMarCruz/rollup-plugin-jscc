@@ -10,7 +10,7 @@ const external = [
 ]
 
 export default {
-  entry: 'src/index.js',
+  entry: './src/index.js',
   plugins: [
     buble(),
     nodeResolve({ jsnext: true })

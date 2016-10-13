@@ -3,7 +3,7 @@
  * @module
  */
 import jscc from 'jscc'
-import createFilter from './util/filter'
+import createFilter from './filter'
 import { readFileSync } from 'fs'
 
 export default function jspp (options) {
