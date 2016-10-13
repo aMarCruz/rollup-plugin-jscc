@@ -1,18 +1,20 @@
 
-var buble = require('rollup-plugin-buble')
-var nodeResolve = require('rollup-plugin-node-resolve')
-var external = [
+import buble from 'rollup-plugin-buble'
+import nodeResolve from 'rollup-plugin-node-resolve'
+
+const external = [
   'magic-string',
   'rollup-pluginutils',
   'fs',
   'path'
 ]
 
-module.exports = {
+export default {
   entry: 'src/index.js',
   plugins: [
     buble(),
     nodeResolve({ jsnext: true })
   ],
-  external: external
+  external: external,
+  interop: false
 }

@@ -1,5 +1,4 @@
 
-
 let bar = 'foo'.toUpperCase();  // bar = 'FOO'
 let baz = { foo: 'bar' };       // baz = { foo: 'bar' }
 
