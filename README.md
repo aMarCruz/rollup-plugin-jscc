@@ -5,9 +5,9 @@
 
 # rollup-plugin-jscc
 
-Conditional compilation (and declaration of ES6 imports) for [rollup](http://rollupjs.org/)
+Conditional compilation (and declaration of ES6 imports) for [rollup](http://rollupjs.org/).
 
-Featuring some of the C preprocessor characteristics through special, configurable comments, jscc can be used in any type of files to build multiple versions of your software from the same code base.
+Featuring some of the C preprocessor characteristics through special, configurable comments, [jscc](https://github.com/aMarCruz/jscc) can be used in any type of files to build multiple versions of your software from the same code base.
 
 With jscc, you have:
 
@@ -73,7 +73,7 @@ mylib.log('Starting v1.0.0...');
 
 That's it.
 
-\* From v0.2.1, jscc has the predefined `_VERSION` varname, in addition to `_FILE`.
+\* jscc has the predefined `_VERSION` varname, in addition to `_FILE`.
 
 ## Documentation
 
@@ -86,6 +86,8 @@ You can read in the jscc Wiki about:
 
 
 ## What's New
+
+- Jump from v0.2.2 to v0.3.2, to stay in sync with jscc.
 
 - The staring sequence of HTML comments (`'<!--'`) is included in the predefined prefixes.
 

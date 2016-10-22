@@ -1,5 +1,9 @@
 # rollup-plugin-jscc changes
 
+### v0.3.2 - sync with jscc
+- From this release, the version number will be in sync with jscc.
+- Updated `devDependencies`.
+
 ### v0.2.2 - jscc own repo
 - The staring sequence of HTML comments (`'<!--'`) is included in the predefined prefixes.
 - jscc was moved to its own [github repository](https://github.com/aMarCruz/jscc) and has 100% coverage.
