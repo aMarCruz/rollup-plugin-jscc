@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jscc",
-  "version": "0.3.2",
+  "version": "0.3.3",
   "description": "Conditional comments and variable replacement for rollup, based on jscc",
   "main": "dist/rollup-plugin-jscc.js",
   "module": "dist/rollup-plugin-jscc.es.js",
@@ -23,7 +23,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aMarCruz/rollup-plugin-jscc.git"
+    "url": "https://github.com/aMarCruz/rollup-plugin-jscc.git"
   },
   "keywords": [
     "rollup",
@@ -56,7 +56,7 @@
     "buble": "^0.14.0",
     "eslint": "^3.8.1",
     "expect": "^1.20.2",
-    "jscc": "^0.3.2",
+    "jscc": "^0.3.3",
     "mocha": "^3.1.2",
     "rollup": "^0.36.3",
     "rollup-plugin-buble": "^0.14.0",

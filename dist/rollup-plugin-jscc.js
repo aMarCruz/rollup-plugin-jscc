@@ -31,16 +31,17 @@ var _REPVARS = RegExp(((STRINGS.source) + "|" + (EVLVARS.source)), 'g');
  * Method to perform the evaluation of the received string using
  * a function instantiated dynamically.
  *
+ * @param   {object} ctx - Object with the current set of variables
  * @param   {string} str - String to evaluate, can include other defined vars
- * @param   {object} ctx - Set of variable definitions
  * @returns {any}          The result.
  */
-function evalExpr (str, ctx) {
+function evalExpr (ctx, str) {
+  var values = ctx.options.values;
 
   // var replacement
   var _repVars = function (m, p, v) {
     return v
-      ? p + (v in ctx ? ("this." + v) : v in global ? ("global." + v) : 'undefined')
+      ? p + (v in values ? ("this." + v) : v in global ? ("global." + v) : 'undefined')
       : m
   };
 
@@ -54,10 +55,10 @@ function evalExpr (str, ctx) {
   try {
     // eslint-disable-next-line no-new-func
     var fn = new Function('', ("return (" + expr + ");"));
-    result = fn.call(ctx);
+    result = fn.call(values);
   } catch (e) {
-    e.message += " in expression: " + expr;
-    throw e
+    result = false;
+    ctx._emitError(((e.message) + " in expression \"" + expr + "\""));
   }
 
   return result
@@ -282,7 +283,7 @@ Parser.prototype = {
       return ckey === 'ifnset' ? yes ^ 1 : yes
     }
     // returns the raw value of the expression
-    return evalExpr(expr, this.options.values)
+    return evalExpr(this, expr)
   },
 
   _set: function _set (s) {
@@ -291,7 +292,7 @@ Parser.prototype = {
       var k = m[1];
       var v = m[2];
 
-      this.options.values[k] = v ? evalExpr(v.trim(), this.options.values) : undefined;
+      this.options.values[k] = v ? evalExpr(this, v.trim()) : undefined;
     } else {
       this._emitError(("Invalid memvar assignment \"" + s + "\""));
     }
@@ -307,7 +308,7 @@ Parser.prototype = {
   },
 
   _error: function _error (s) {
-    s = evalExpr(s, this.options.values);
+    s = evalExpr(this, s);
     throw new Error(s)
   }
 };
@@ -343,7 +344,7 @@ function checkOptions (opts) {
     }
   });
 
-  // sequence starting a directive, default is `//|/*` (JS comment)
+  // sequence starting a directive
   var prefixes = opts.prefixes;
   if (!prefixes) {
     opts.prefixes = ['//', '/*', '<!--'];
@@ -374,6 +375,8 @@ function parseOptions (file, opts) {
 
   return {
     sourceMap:    opts.sourceMap !== false,
+    mapContent:   opts.mapContent,
+    mapHires:     opts.mapHires,
     keepLines:    opts.keepLines,
     errorHandler: opts.errorHandler,
     prefixes:     opts.prefixes,
@@ -389,6 +392,9 @@ function remapVars (magicStr, values, str, start) {
 
   re.lastIndex = 0;  // `re` is global, so reset
 
+  // $1 = varname including the prefix '$'
+  // $2 = optional point + property name
+
   while ((mm = re.exec(str))) {
     var v = mm[1].slice(1);
 
@@ -399,7 +405,7 @@ function remapVars (magicStr, values, str, start) {
       v = values[v];
       if (p && p in v) {
         v = v[p];
-        mm[1] += mm[2];
+        mm[1] = mm[0];
       } else if (typeof v == 'object') {
         v = JSON.stringify(v);
       }
@@ -427,7 +433,6 @@ function preproc (code, filename, options) {
 
   var changes   = false;
   var output    = true;
-  var realStart = 0;
   var hideStart = 0;
   var lastIndex = 0;
   var match, index;
@@ -438,8 +443,9 @@ function preproc (code, filename, options) {
 
     index = match.index;
 
-    if (output && lastIndex < index) {
-      pushCache(code.slice(lastIndex, index), lastIndex);
+    if (output && lastIndex < index &&
+        pushCache(code.slice(lastIndex, index), lastIndex)) {
+      changes = true;
     }
 
     lastIndex = re.lastIndex;
@@ -447,17 +453,17 @@ function preproc (code, filename, options) {
     if (output === parser.parse(match)) {
       if (output) {
         lastIndex = removeBlock(index, lastIndex);
+        changes = true;
       }
+    } else if (output) {
+      // output ends, for now, all we do is to save
+      // the pos where the hidden block begins
+      hideStart = index;
+      output = false;
     } else {
-      output = !output;
-      if (output) {
-        // output begins, remove the hidden block now
-        lastIndex = removeBlock(hideStart, lastIndex);
-      } else {
-        // output ends, for now, all we do is to save
-        // the pos where the hidden block begins
-        hideStart = index;
-      }
+      // output begins, remove the hidden block now
+      lastIndex = removeBlock(hideStart, lastIndex);
+      output = changes = true;
     }
 
   }
@@ -466,29 +472,36 @@ function preproc (code, filename, options) {
     output = false;
   }
 
-  if (output && code.length > lastIndex) {
-    pushCache(code.slice(lastIndex), lastIndex);
+  if (output && code.length > lastIndex &&
+      pushCache(code.slice(lastIndex), lastIndex)) {
+    changes = true;
   }
 
-  // done, return an object if there was changes
-  if (changes) {
-    var result = {
-      code: magicStr.toString()
-    };
-    if (changes && options.sourceMap) {
-      result.map = magicStr.generateMap({ hires: true });
-    }
-    return result
+  // always returns an object
+  var result = {
+    code: changes ? magicStr.toString() : code
+  };
+
+  if (changes && options.sourceMap) {
+    result.map = magicStr.generateMap({
+      source: filename || null,
+      includeContent: options.mapContent !== false,
+      hires: options.mapHires !== false
+    });
   }
 
-  return code
+  return result
 
   // helpers ==============================================
 
   function pushCache (str, start) {
-    if (str && ~str.indexOf('$_')) {
-      changes = remapVars(magicStr, options.values, str, start) || changes;
+    var change = str && ~str.indexOf('$_');
+
+    if (change) {
+      change = remapVars(magicStr, options.values, str, start);
     }
+
+    return change
   }
 
   function removeBlock (start, end) {
@@ -497,22 +510,14 @@ function preproc (code, filename, options) {
     if (options.keepLines) {
       block = code.slice(start, end).replace(/[^\r\n]+/g, '');
 
-    // @TODO: Remove first jscc lines
-    } else if (start > realStart) {
-      --start;
-      if (code[start] === '\n' && code[start - 1] === '\r') {
-        --start;
-      }
-    } else if (end < code.length && /[\n\r]/.test(code[end])) {
+    } else if (end < code.length) {
       ++end;
       if (code[end] === '\n' && code[end - 1] === '\r') {
         ++end;
       }
-      realStart = end;
     }
-    magicStr.overwrite(start, end, block);
-    changes = true;
 
+    magicStr.overwrite(start, end, block);
     return end
   }
 }

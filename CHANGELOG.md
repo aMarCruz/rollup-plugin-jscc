@@ -1,5 +1,8 @@
 # rollup-plugin-jscc changes
 
+### v0.3.3 - fix in jscc
+- Using jscc v0.3.3 that fixes bug in sourceMap generation.
+
 ### v0.3.2 - sync with jscc
 - From this release, the version number will be in sync with jscc.
 - Updated `devDependencies`.
