@@ -1,6 +1,8 @@
 'use strict';
 
-var MagicString = require('magic-string');
+function _interopDefault (ex) { return (ex && (typeof ex === 'object') && 'default' in ex) ? ex['default'] : ex; }
+
+var MagicString = _interopDefault(require('magic-string'));
 var path = require('path');
 var rollupPluginutils = require('rollup-pluginutils');
 var fs = require('fs');
@@ -552,6 +554,7 @@ function _createFilter (opts, exts) {
  * rollup-plugin-jscc entry point
  * @module
  */
+
 function jspp (options) {
   if (!options) { options = {}; }
 

@@ -1,5 +1,5 @@
 import MagicString from 'magic-string';
-import { extname, join, relative } from 'path';
+import { join, relative, extname } from 'path';
 import { createFilter } from 'rollup-pluginutils';
 import { readFileSync } from 'fs';
 
@@ -550,6 +550,7 @@ function _createFilter (opts, exts) {
  * rollup-plugin-jscc entry point
  * @module
  */
+
 function jspp (options) {
   if (!options) { options = {}; }
 
