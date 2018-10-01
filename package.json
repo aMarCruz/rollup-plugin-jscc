@@ -6,7 +6,7 @@
   "module": "dist/rollup-plugin-jscc.es.js",
   "jsnext:main": "dist/rollup-plugin-jscc.es.js",
   "engines": {
-    "node": ">=0.12"
+    "node": ">=6.0.0"
   },
   "scripts": {
     "test": "mocha",
