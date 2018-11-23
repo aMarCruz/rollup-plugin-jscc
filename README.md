@@ -9,7 +9,7 @@
 
 Conditional compilation and compile-time variable replacement for [Rollup](http://rollupjs.org/).
 
-rollup-plugin-jscc is **not** a transpiler, it is a wrapper of [jscc](http://amarcruz.github.io/jspreproc), a tiny and powerful, language agnostic file preprocessor that uses JavaScript to transform text based on expressions at compile time.
+rollup-plugin-jscc is **not** a transpiler, it is a wrapper of [jscc](https://github.com/aMarCruz/jscc), a tiny and powerful, language agnostic file preprocessor that uses JavaScript to transform text based on expressions at compile time.
 
 With jscc, you have:
 
