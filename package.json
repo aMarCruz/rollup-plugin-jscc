@@ -1,65 +1,55 @@
 {
   "name": "rollup-plugin-jscc",
-  "version": "0.3.3",
+  "version": "1.0.0",
   "description": "Conditional comments and variable replacement for rollup, based on jscc",
-  "main": "dist/rollup-plugin-jscc.js",
-  "module": "dist/rollup-plugin-jscc.es.js",
-  "jsnext:main": "dist/rollup-plugin-jscc.es.js",
+  "main": "./index.js",
+  "types": "./index.d.ts",
   "engines": {
-    "node": ">=0.12"
+    "node": ">=6.0"
   },
   "scripts": {
-    "test": "mocha",
-    "lint": "eslint src test/index.js",
-    "pretest": "npm run build:cjs",
-    "build": "rm -rf dist/* && npm run build:cjs && npm run build:es6",
-    "build:cjs": "rollup -c -f cjs -o dist/rollup-plugin-jscc.js",
-    "build:es6": "rollup -c -f es -o dist/rollup-plugin-jscc.es.js",
-    "prepublish": "npm run lint && npm test && npm run build"
-  },
-  "files": [
-    "dist",
-    "src"
-  ],
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/aMarCruz/rollup-plugin-jscc.git"
+    "lint": "eslint --ext js src test",
+    "pretest": "rollup -c",
+    "test": "nyc mocha",
+    "build": "rm -rf dist/* && rollup -c",
+    "prepublishOnly": "npm run lint && npm test"
   },
   "keywords": [
     "rollup",
     "rollup-plugin",
     "javascript",
+    "typescript",
     "es2015",
     "es6",
     "modules",
+    "compilation",
     "preproccesor",
     "jspreproc",
-    "jscc",
-    "conditional comments",
-    "compilation"
+    "jscc"
   ],
   "author": {
     "name": "aMarCruz",
     "email": "amarcruzbox-git@yahoo.com",
-    "url": "https://github.com/aMarCruz"
+    "url": "https://amarcruz.github.io"
   },
   "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/aMarCruz/rollup-plugin-jscc/issues"
-  },
+  "bugs": "https://github.com/aMarCruz/rollup-plugin-jscc/issues",
   "homepage": "https://github.com/aMarCruz/rollup-plugin-jscc",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/aMarCruz/rollup-plugin-jscc"
+  },
   "dependencies": {
-    "magic-string": "^0.16.0",
+    "@jsbits/get-package-version": "^1.0.1",
+    "jscc": "^1.1.0",
     "rollup-pluginutils": "^1.5.2"
   },
   "devDependencies": {
-    "buble": "^0.14.0",
-    "eslint": "^3.8.1",
-    "expect": "^1.20.2",
-    "jscc": "^0.3.3",
-    "mocha": "^3.1.2",
-    "rollup": "^0.36.3",
-    "rollup-plugin-buble": "^0.14.0",
-    "rollup-plugin-node-resolve": "^2.0.0"
+    "eslint": "^5.7.0",
+    "expect.js": "^0.3.1",
+    "mocha": "^5.2.0",
+    "nyc": "^13.1.0",
+    "rollup": "^0.67.3",
+    "rollup-plugin-node-resolve": "^3.4.0"
   }
 }

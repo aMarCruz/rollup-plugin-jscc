@@ -1,12 +1,8 @@
-//#set _DEBUG 0
-
-/*#if _DEBUG
-//#set _DEBUGOUT 'debugger'
-function debugger (s) {
-  console.log('DEBUG: %s', s);
-}
+//#if _DEBUG
+//#set _DEBUGOUT 'console.log'
+//#elif 0
+const $_DEBUGOUT = console.log;
 //#else
 //#set _DEBUGOUT '//'
-//#endif // */
-
+//#endif
 $_DEBUGOUT('hello jscc!');

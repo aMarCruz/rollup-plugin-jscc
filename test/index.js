@@ -1,264 +1,245 @@
+/*
+  jscc has extensive test with 100% coverage.
+  Here we only check the plugin operation and very basic transforms.
+*/
 'use strict'
 
-const plugin = require('../')
-const expect = require('expect')
+const expect = require('expect.js')
 const path   = require('path')
-const fs     = require('fs')
+const jscc   = require('../')
+const rollup = require('rollup')
 
 process.chdir(__dirname)
 
 // Helpers ================================================
 
-function concat (name, subdir) {
-  let file = path
-      .join(__dirname, subdir || 'expected', name)
-      .replace(/\\/g, '/')
+const transformer = (opts) => jscc(Object.assign({ asloader: false }, opts))
 
-  if (!path.extname(file)) file += '.js'
+const fixturePath = function (name) {
+  let file = path
+    .join(__dirname, 'fixtures', name)
+    .replace(/\\/g, '/')
+
+  if (!path.extname(file)) {
+    file += '.js'
+  }
   return file
 }
 
-function getexpect (file) {
-  return fs.readFileSync(concat(file), 'utf8')
+const generate = function (file, opts) {
+  file = fixturePath(file)
+
+  return jscc(opts).load(file).then((result) => {
+    if (typeof result == 'string') {
+      return result.replace(/[ \t]*$/gm, '')
+    }
+    return result && result.code.replace(/[ \t]*$/gm, '')
+  })
 }
 
-function generate (file, opts) {
-  const inFile = concat(file, 'fixtures')
-  const result = plugin(opts).load(inFile)
+const testFileStr = function (file, expected, opts) {
+  opts = opts || {}
+  opts.sourceMap = false
 
-  return result && (result.code || result).replace(/[ \t]*$/gm, '')
+  return generate(file, opts).then((result) => {
+    expect(result).to.be.a('string')
+
+    if (typeof expected == 'string') {
+      expect(result).to.be(expected)
+    } else {
+      expect(result).to.match(expected)
+    }
+    return result
+  })
 }
 
-function testFile (file, opts, save) {
-  const expected = getexpect(file)
-  const result = generate(file, opts)
+const rollupFile = (filename, outputOptions, jsccOptions) => {
+  outputOptions = Object.assign({ format: 'cjs' }, outputOptions)
 
-  expect(result).toBeA('string')
-  if (save) fs.writeFileSync(concat(`${file}_out.js`), result || '')
-
-  expect(result).toBe(expected)
-}
-
-function testStr (file, expected, opts) {
-  const result = generate(file, opts)
-
-  expect(result).toContain(expected)
+  return rollup.rollup({
+    input: fixturePath(filename),
+    plugins: [
+      jscc(jsccOptions),
+    ],
+  })
+    .then((bundle) => bundle.generate(outputOptions))
+    .then((result) => result.code)
 }
 
 // The suites =============================================
 
 describe('rollup-plugin-jscc', function () {
 
-  it('by default uses JavaScript comments to start directives', function () {
-    testStr('defaults', '/* Hello World */')
+  it('must return an object with the plugin instance as a loader', function () {
+    const p = jscc()
+    expect(p).to.be.an(Object)
+    expect(p).to.have.property('name', 'jscc')
+    expect(p).to.have.property('load')
+    expect(p.load).to.be.a(Function)
+    expect(p).to.not.have.property('transform')
   })
 
-  it('predefined variable `_FILE` is the relative path of the current file', function () {
-    testFile('def-file-var')
+  it('must return the plugin as a transformer if `asloader:false`', function () {
+    const p = transformer()
+    expect(p).to.be.an(Object)
+    expect(p).to.have.property('name', 'jscc')
+    expect(p).to.have.property('transform')
+    expect(p.transform).to.be.a(Function)
+    expect(p).to.not.have.property('load')
   })
 
-  it('predefined variable `_VERSION` from package.json in the current path', function () {
+  it('predefined `_FILE` value is the relative path of the current dir', function () {
+    return rollupFile('def-file-var').then(
+      (code) => expect(code).to.contain('// fixtures/def-file-var.js\n')
+    )
+  })
+
+  it('predefined `_VERSION` must get the correct package.json', function () {
     const version = require('../package.json').version
-    testStr('def-version-var', `@version ${version}`)
+
+    return transformer().transform('$_VERSION', 'v.js')
+      .then((result) => {
+        expect(result.code).to.be(version)
+      })
   })
 
-  it('allows to define custom variables with the `values` option', function () {
-    testFile('custom-vars', {
-      values: {
-        _ZERO: 0,
-        _MYBOOL: false,
-        _MYSTRING: 'foo',
-        _INFINITY: 1 / 0,
-        _NAN: parseInt('@', 10),
-        _NULL: null,
-        _UNDEF: undefined
-      }
-    })
+  it('predefined `_VERSION` can be overwritten', function () {
+    const _VERSION = 'WIP'
+    const options = { values: { _VERSION } }
+
+    return transformer(options).transform('$_VERSION', 'v.js')
+      .then((result) => {
+        expect(result.code).to.be(_VERSION)
+      })
   })
 
-  it('directives ends at the end of the line or the first unquoted `//`', function () {
-    testStr('directive-ending', 'true\n')
+  it('must allow to define custom variables from the plugin', function () {
+    const values = {
+      _ZERO: 0,
+      _MYBOOL: false,
+      _MYSTRING: 'foo',
+      _INFINITY: Infinity,
+      _NAN: NaN,
+      _NULL: null,
+      _UNDEF: undefined,
+    }
+    const source = [
+      '$_ZERO',
+      '$_MYBOOL',
+      '"$_MYSTRING"',
+      '$_INFINITY',
+      '$_NAN',
+      '$_NULL',
+      '$_UNDEF',
+      '$_NOT_DEFINED',
+    ].join('\n')
+
+    return transformer({ values }).transform(source, 'a.js')
+      .then((result) => {
+        expect(result).to.ok()
+        expect(result.code).to.be([
+          '0',
+          'false',
+          '"foo"',
+          'Infinity',
+          'NaN',
+          'null',
+          'undefined',
+          '$_NOT_DEFINED',
+        ].join('\n'))
+      })
   })
 
-  it('support conditional comments with the `#if _VAR` syntax', function () {
-    testStr('if-cc-directive', 'true\n', {
-      values: { _TRUE: true }
-    })
-  })
-})
-
-
-describe('Compile-time variables', function () {
-
-  it('can be defined within the code by `#set`', function () {
-    testStr('var-inline-var', 'true\nfoo\n')
+  it('varnames as function-like macros', function () {
+    testFileStr('var-macros', "//('hello jscc!');\n")
+    testFileStr('var-macros', "console.log('hello jscc!');\n", { values: { _DEBUG: 1 } })
   })
 
-  it('can be defined within the code with JS expressions', function () {
-    testStr('var-inline-expr', 'true\nfoo\n')
+  it('supports Buffer objects', function () {
+    const buffer = Buffer.from('OK', 'utf8')
+    return transformer().transform(buffer, 'a.js')
+      .then((res) => expect(res).to.be.an(Object).and.have.property('code', 'OK'))
   })
 
-  it('can be used for simple substitution in the code', function () {
-    testStr('var-code-replace', 'true==1\n"foo"')
-  })
-
-  it('defaults to `undefined` if no value is given', function () {
-    testStr('var-default-value', 'true')
-  })
-
-  it('can be changed anywhere in the code', function () {
-    testStr('var-changes', 'true\nfalse')
-  })
-
-  it('`#unset` removes defined variables', function () {
-    testStr('var-unset', 'true\n', { values: { _TRUE: true } })
-  })
-
-  it('`$` is used to paste jscc variable values', function () {
-    testStr('var-paste', 'truetrue\n', { values: { _TRUE: true } })
-  })
-
-  it('varnames as function-like macros (C-like)', function () {
-    testFile('var-macros')
-  })
-
-  it('syntax errors in expressions throws during the evaluation', function () {
-    expect(function () { generate('var-eval-error') }).toThrow()
-  })
-
-  it('not defined vars are replaced with `undefined` during the evaluation', function () {
-    testStr('var-eval-not-defined', 'true\n')
-  })
-
-  it('other runtime errors throws (like accesing props of undefined)', function () {
-    expect(function () { generate('var-eval-prop-undef') }).toThrow(/\bundefined\b/)
-  })
-})
-
-
-describe('Conditional compilation', function () {
-
-  it('supports `#else`', function () {
-    testStr('cc-else', 'true\n')
-  })
-
-  it('and the `#elif` directive', function () {
-    testStr('cc-elif', 'true\n')
-  })
-
-  it('have `#ifset` for testing variable existence (even undefined values)', function () {
-    testStr('cc-ifset', 'true\n')
-  })
-
-  it('and `#ifnset` for testing not defined variables', function () {
-    testStr('cc-ifnset', 'true\n')
-  })
-
-  it('blocks can be nested', function () {
-    testStr('cc-nested', '\ntrue\ntrue\ntrue\n')
-  })
-
-  it('you can throw an exception with custom message through `#error`', function () {
-    expect(function () { generate('cc-error') }).toThrow(/boom!/)
-  })
-
-  it('unclosed conditional blocks throws an exception', function () {
-    expect(function () { generate('cc-unclosed') }).toThrow(/Unexpected end of file/)
-  })
-
-  it('unbalanced blocks throws, too', function () {
-    expect(function () { generate('cc-unbalanced') }).toThrow(/Unexpected #/)
-  })
-
-  it('can use multiline comments by closing the comment after `//`', function () {
-    testFile('cc-hide-ml-cmts')
-  })
-
-  it('using multiline comments `/**/` allows hide content', function () {
-    testFile('cc-hide-content')
+  it('ignore sources other than string or Buffer objects', function () {
+    const some = new Date()
+    transformer().transform(some, 'a.js').then(
+      (res) => expect(res).to.be(some)
+    )
   })
 
 })
-
-
-describe('HTML processing', function () {
-
-  it('can be done including ".html" (whatever) in extensions', function () {
-    testFile('html-vars-js.html', {
-      extensions: ['html'],
-      values: { _TITLE: 'My App' }
-    })
-  })
-
-  it('can handle html comments including "<!--" in `prefixes`', function () {
-    testFile('html-vars.html', {
-      extensions: ['html'],
-      prefixes: '<!--',
-      values: { _TITLE: 'My App' }
-    })
-  })
-
-})
-
 
 describe('Options:', function () {
 
-  it('default preprocess only files with extensions in [.js, .jsx, .tag]', function () {
-    const result = generate('html-vars.html')
-    expect(result).toBe(null)
+  it('default preprocess files with extensions [.js, .jsx, .ts, .tsx, .tag]', function () {
+    const res = transformer().transform('<a/>', 'a.html')
+    expect(res).to.be(null)
+
+    return transformer().transform('//', 'a.ts').then(
+      (res) => expect(res).to.be.an(Object).and.have.property('code', '//')
+    )
   })
 
-  it('`extensions`="*" (as string) must include all the files', function () {
-    const result = generate('html-vars.html', {
-      extensions: '*'
-    })
-    expect(result).toBeA('string')
+  it('`extensions:"*"` (string) must include all the files', function () {
+    return transformer({ extensions: '*' }).transform('<a/>', 'a.html')
+      .then((res) => expect(res).to.be.an(Object).and.have.property('code', '<a/>'))
+  })
+
+  it('`extensions` can limit jscc to certain files, by ex ".txt"', function () {
+    const opts = { extensions: 'txt' }
+    const res = transformer(opts).transform('//', 'a.js')
+    expect(res).to.be(null)
+
+    transformer(opts).transform('OK', 'a.txt').then(
+      (res) => expect(res).to.be.an(Object).and.have.property('code', 'OK')
+    )
   })
 
   it('special files are always ignored (filename starting with `\\0`)', function () {
-    const result = generate('\0defaults')
-    expect(result).toBe(null)
+    expect(jscc(null).load('\0defaults.js')).to.be(null)
   })
 
   it('`exclude` avoids file preprocessing from given paths', function () {
-    const result = generate('defaults', {
-      exclude: ['**/fixtures/**']
-    })
-    expect(result).toBe(null)
+    const inFile = fixturePath('a.js')
+    expect(jscc({ exclude: ['**/fixtures/**'] }).load(inFile)).to.be(null)
   })
 
-  it('`include` limit the preprocess to certain paths', function () {
-    const result = generate('defaults', {
-      include: ['**/fixtures/**']
+  it('`include` limit the preprocesing to certain paths', function () {
+    return generate('defaults', { include: ['**/fixtures/**'] }).then((result) => {
+      expect(result).to.be.a('string')
     })
-    expect(result).toBeA('string')
-  })
-
-  it('`keepLines` preserve line-endings (keep line count w/o sourceMaps)', function () {
-    const types = require('./fixtures/_types.js')
-    testFile('htmlparser', { values: { _T: types }, keepLines: true })
   })
 
 })
 
+describe('Error handling', function () {
 
-describe('Examples:', function () {
-
-  it('Simple replacement', function () {
-    testFile('ex-simple-replacement')
+  it('you can reject with custom message through `#error`', function () {
+    return rollupFile('cc-error').then(
+      (res) => expect().fail(`Expected a rejected Promise, but it was resolved to "${res}"`),
+      (err) => expect('' + err).to.contain('boom!')
+    )
   })
 
-  it('Object and properties', function () {
-    testFile('ex-object-properties')
+  it('unclosed conditional blocks must throw an exception', function () {
+    return rollupFile('cc-unclosed').then(
+      (res) => expect().fail(`Expected a rejected Promise, but it was resolved to "${res}"`),
+      (err) => expect('' + err).to.match(/Unexpected end of file/)
+    )
   })
 
-  it('Using _FILE and dates', function () {
-    const result = generate('ex-file-and-date')
-    expect(result).toMatch(/date\.js\s+Date: 20\d{2}-\d{2}-\d{2}\n/)
+  it('syntax errors in expressions rejects during the evaluation', function () {
+    return rollupFile('var-eval-error').then(
+      (res) => expect().fail(`Expected a rejected Promise, but it was resolved to "${res}"`),
+      (err) => expect(err).to.be.an(Error)
+    )
   })
 
-  it('Hidden blocks (and process.env.*)', function () {
-    testFile('ex-hidden-blocks', {}, true)
+  it('as loader, rejects on un-existing files', function () {
+    return rollupFile('no-file').then(
+      (res) => expect().fail(`Expected a rejected Promise, but it was resolved to "${res}"`),
+      (err) => expect(err).to.be.an(Error)
+    )
   })
-
 })

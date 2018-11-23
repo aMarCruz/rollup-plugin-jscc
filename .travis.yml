@@ -3,13 +3,22 @@ sudo: false
 language: node_js
 
 node_js:
-    - "6"
-    - "4.2"
+    - "6.9.0"
+    - "10"
 
 branches:
     only:
         - master
         - dev
+
+before_script:
+    - make setup_cover
+
+script:
+    - yarn test
+
+after_script:
+    - make send_cover
 
 notifications:
     email: false

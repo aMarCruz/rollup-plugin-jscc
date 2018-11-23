@@ -1,26 +1,35 @@
+import makeFilter from './make-filter'
+import parseOptions from './parse-options'
+import procFile from './proc-file'
+
 /**
  * rollup-plugin-jscc entry point
- * @module
+ *
+ * @param {import('..').Options} options User options
+ * @returns {import('rollup').Plugin}
  */
-import jscc from 'jscc'
-import createFilter from './filter'
-import { readFileSync } from 'fs'
+const jsccPlugin = function jsccPlugin (options) {
 
-export default function jspp (options) {
-  if (!options) options = {}
+  // Get the jscc options from the plugin options
+  options = parseOptions(options)
 
-  const filter = createFilter(options, ['.js', '.jsx', '.tag'])
+  const filter = makeFilter(options, ['.js', '.jsx', 'ts', 'tsx', '.tag'])
 
-  return {
-
-    name: 'jscc',
-
-    load (id) {
-      if (filter(id)) {
-        const code = readFileSync(id, 'utf8')
-        return jscc(code, id, options)
-      }
-      return null
+  if (options.asloader !== false) {
+    return {
+      name: 'jscc',
+      load (id) {
+        return filter(id) ? procFile(id, options) : null
+      },
     }
   }
+
+  return {
+    name: 'jscc',
+    transform: function (code, id) {
+      return filter(id) ? procFile(id, options, code) : null
+    },
+  }
 }
+
+export default jsccPlugin

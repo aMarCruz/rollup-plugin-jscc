@@ -1,9 +1,3 @@
-# Share VSCode config, launcher, and tasks setup, but no more
-.vscode/**/*
-!.vscode/launch.json
-!.vscode/settings.json
-!.vscode/tasks.json
-
 # Common git and npm ignored folders and files
 .nyc_output
 .rpt2_cache
@@ -22,3 +16,9 @@ pids
 **/*.lcov
 **/*.lock
 **/*.log
+
+# Additional files to ignore
+.vscode
+test
+Makefile
+**/*.yml

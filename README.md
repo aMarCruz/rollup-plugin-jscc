@@ -1,66 +1,73 @@
-[![Build Status][build-image]][build-url]
-[![AppVeyor Status][wbuild-image]][wbuild-url]
-[![npm Version][npm-image]][npm-url]
-[![License][license-image]][license-url]
-
 # rollup-plugin-jscc
 
-Conditional compilation (and declaration of ES6 imports) for [rollup](http://rollupjs.org/).
+[![npm Version][npm-badge]][npm-url]
+[![Build Status][build-badge]][build-url]
+[![AppVeyor Status][wbuild-badge]][wbuild-url]
+[![Maintainability][climate-badge]][climate-url]
+[![Test coverage][codecov-badge]][codecov-url]
+[![License][license-badge]][license-url]
 
-Featuring some of the C preprocessor characteristics through special, configurable comments, [jscc](https://github.com/aMarCruz/jscc) can be used in any type of files to build multiple versions of your software from the same code base.
+Conditional compilation and compile-time variable replacement for [Rollup](http://rollupjs.org/).
+
+rollup-plugin-jscc is **not** a transpiler, it is a wrapper of [jscc](http://amarcruz.github.io/jspreproc), a tiny and powerful, language agnostic file preprocessor that uses JavaScript to transform text based on expressions at compile time.
 
 With jscc, you have:
 
-* Conditional inclusion/exclusion of code, based on compile-time variables*
-* Compile-time variables with all the power of JavaScript expressions
-* Replacement of variables inside the source (by value at compile-time)
-* Source Map support
+- Conditional inclusion/exclusion of blocks, based on compile-time variables*
+- Compile-time variables with all the power of JavaScript expressions
+- Replacement of variables in the sources, by its value at compile-time
+- Sourcemap support, useful for JavaScript sources.
+- TypeScript v3 definitions
 
 \* This feature allows you the conditional declaration of ES6 imports (See the [example](#example)).
 
-Because this plugin is a preprocessor, it is implemented as a file loader.
+Since jscc is a preprocessor, rollup-plugin-jscc is implemented as a _file loader_, so it runs before any transpiler and is invisible to them. This behavior allows you to use it in a wide range of file types but, if necessary, it can be used as a Rollup _transformer_ instead of a loader.
 
-jscc is **not** a minifier tool, it only does well that it does...
+_**NOTE**_
 
-jscc is derived on [jspreproc](http://amarcruz.github.io/jspreproc), the tiny source file preprocessor in JavaScript, enhanced with Source Map support but without the file importer (rollup does this better).
+v1.0.0 is a complete rewrite and there some changes, please read the specs in [jscc wiki](https://github.com/aMarCruz/jscc/wiki).
 
-**NOTE:**
-
-v0.2.0 is a complete rewrite and there's breaking changes, please read the specs in [the wiki](https://github.com/aMarCruz/jscc/wiki).
-Also, removal of comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines, in addition to the conditional removal of JS comments.
+Also, removal of non-jscc comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines in addition to the conditional removal of JS comments.
 
 ## Install
 
-```sh
+```bash
 npm i rollup-plugin-jscc -D
+# or
+yarn add rollup-plugin-jscc -D
 ```
 
+rollup-plugin-jscc requires node.js v6 or later.
+
 ## Usage
+
+rollup.config.js
 
 ```js
 import { rollup } from 'rollup';
 import jscc from 'rollup-plugin-jscc';
 
-rollup({
-  entry: 'src/main.js',
+export default {
+  input: 'src/main.js',
   plugins: [
-    jscc()
-  ]
-}).then(...)
+    jscc({
+      values: { _APPNAME: 'My App', _DEBUG: 1 },
+    }),
+  ],
+  //...
+}
 ```
 
-## Example
+in your source:
 
 ```js
-//#set _DEBUG 1
-
 /*#if _DEBUG
 import mylib from 'mylib-debug';
 //#else */
 import mylib from 'mylib';
 //#endif
 
-mylib.log('Starting v$_VERSION...');
+mylib.log('Starting $_APPNAME v$_VERSION...');
 ```
 
 output:
@@ -68,45 +75,63 @@ output:
 ```js
 import mylib from 'mylib-debug';
 
-mylib.log('Starting v1.0.0...');
+mylib.log('Starting My App v1.0.0...');
 ```
 
 That's it.
 
-\* jscc has the predefined `_VERSION` varname, in addition to `_FILE`.
+\* jscc has two predefined memvars: `_FILE` and `_VERSION`, in addition to giving access to the environment variables through the nodejs [`proccess.env`](https://nodejs.org/api/process.html#process_process_env) object.
 
-## Documentation
+## Options
 
-You can read in the jscc Wiki about:
+Plain JavaScript object, with all properties optional.
 
-- [Options](https://github.com/aMarCruz/jscc/wiki/Options)
-- [Syntax](https://github.com/aMarCruz/jscc/wiki/Syntax)
-- [Keywords](https://github.com/aMarCruz/jscc/wiki/Keywords)
-- [Examples & Tricks](https://github.com/aMarCruz/jscc/wiki/Examples)
+Name         | Type            | Description
+------------ | --------------- | -----------
+escapeQuotes | string          | String with the type of quotes to escape in the output of strings: 'single', 'double' or 'both'.<br>**Default** nothing.
+keepLines    | boolean         | Preserves the empty lines of directives and blocks that were removed.<br>Use this option with `sourceMap:false` if you are interested only in keeping the line numbering.<br>**Default** `false`
+mapHires     | boolean         | Make a hi-res source-map, if `sourceMap:true` (the default).<br>**Default** `true`
+prefixes     | string &vert; RegExp &vert;<br>Array&lt;string&vert;RegExp&gt; | The start of a directive. That is the characters before the '#', usually the start of comments.<br>**Default** `['//', '/*', '<!--']` (with one optional space after them).
+sourcemap    | boolean         | Must include a sourcemap?<br>Should be the same value as the property `sourcemap` of the Rollup output.<br>**Default** `true`
+values       | object          | Plain object defining the variables used by jscc during the preprocessing.<br>**Default** `{}`
+extensions   | string &vert; Array&lt;string&gt; | Array of strings that specifies the file extensions to process.<br>**Default** `['js', 'jsx', 'ts', 'tsx', 'tag']`
+include      | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that must be included in the processing.
+exclude      | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that should be ignored.
 
+## Directives
+
+Please see the [jscc wiki] (https://github.com/aMarCruz/jscc/wiki) to know about directives used by jscc.
 
 ## What's New
 
-- Jump from v0.2.2 to v0.3.2, to stay in sync with jscc.
+- Only CommonJS version with dependency on jscc v1.1.0
+- The minimum supported version of node.js is 6
+- The predefined extensions were extended to include those of React and TypeScript.
+- `RegEx` and` Date` values now outputs its literal content in replacements.
+- Objects containing `NaN` now outputs `NaN` in replacements.
+- `Infinite` and `-Infinity` in JSON objects are replaced with `Number.MAX_VALUE` and `Number.MIN_VALUE`, respectively.
+- Added TypeScript v3 definitions.
 
-- The staring sequence of HTML comments (`'<!--'`) is included in the predefined prefixes.
+## Support my Work
 
-From v0.2.2, the jscc codebase was moved to its own [github repository](https://github.com/aMarCruz/jscc) and has 100% coverage.
-Test for node v0.12 is not included in this plugin, but it is in the jscc repo.
+I'm a full-stack developer with more than 20 year of experience and I try to share most of my work for free and help others, but this takes a significant amount of time, effort and coffee so, if you like my work, please consider...
 
----
+[<img src="https://amarcruz.github.io/images/kofi_blue.png" height="36" title="Support Me on Ko-fi" />][kofi-url]
 
-\* _For me, write in english is 10x harder than coding JS, so contributions are welcome..._
+Of course, feedback, PRs, and stars are also welcome 🙃
 
+Thanks for your support!
 
-Don't forget to give me your star!
-
-
-[build-image]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-jscc.svg
-[build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-jscc
-[wbuild-image]:   https://img.shields.io/appveyor/ci/aMarCruz/rollup-plugin-jscc/master.svg?style=flat-square
-[wbuild-url]:     https://ci.appveyor.com/project/aMarCruz/rollup-plugin-jscc/branch/master
-[npm-image]:      https://img.shields.io/npm/v/rollup-plugin-jscc.svg
+[npm-badge]:      https://img.shields.io/npm/v/rollup-plugin-jscc.svg
 [npm-url]:        https://www.npmjs.com/package/rollup-plugin-jscc
-[license-image]:  https://img.shields.io/npm/l/express.svg
+[build-badge]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-jscc.svg
+[build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-jscc
+[wbuild-badge]:   https://img.shields.io/appveyor/ci/aMarCruz/rollup-plugin-jscc/master.svg?style=flat-square
+[wbuild-url]:     https://ci.appveyor.com/project/aMarCruz/rollup-plugin-jscc/branch/master
+[climate-badge]:  https://api.codeclimate.com/v1/badges/896211f2169f2c1dcd62/maintainability
+[climate-url]:    https://codeclimate.com/github/aMarCruz/rollup-plugin-jscc/maintainability
+[codecov-badge]:  https://codecov.io/gh/aMarCruz/rollup-plugin-jscc/branch/master/graph/badge.svg
+[codecov-url]:    https://codecov.io/gh/aMarCruz/rollup-plugin-jscc
+[license-badge]:  https://img.shields.io/npm/l/express.svg
 [license-url]:    https://github.com/aMarCruz/rollup-plugin-jscc/blob/master/LICENSE
+[kofi-url]:       https://ko-fi.com/C0C7LF7I

@@ -1,20 +1,23 @@
+const nodeResolve = require('rollup-plugin-node-resolve')
+const pkg = require('./package.json')
 
-import buble from 'rollup-plugin-buble'
-import nodeResolve from 'rollup-plugin-node-resolve'
-
-const external = [
-  'magic-string',
-  'rollup-pluginutils',
-  'fs',
-  'path'
-]
+const external = Object.keys(pkg.dependencies).concat(['fs', 'path'])
+const banner = `/**
+ * rollup-plugin-jscc v${pkg.version}
+ * @license ${pkg.license}
+ */
+/* eslint-disable */`
 
 export default {
-  entry: './src/index.js',
+  input: './src/index.js',
   plugins: [
-    buble(),
-    nodeResolve({ jsnext: true })
+    nodeResolve(),
   ],
-  external: external,
-  interop: false
+  external,
+  output: {
+    banner,
+    file: './index.js',
+    format: 'cjs',
+    interop: false,
+  },
 }
