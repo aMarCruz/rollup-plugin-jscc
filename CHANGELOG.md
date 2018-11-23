@@ -12,7 +12,7 @@
 - Only CommonJS version with dependency on jscc v1.1.0
 - The minimum supported version of node.js is 6
 - The predefined extensions were extended to include those of React and TypeScript.
-- `RegEx` and` Date` values now outputs its literal content in replacements.
+- `RegEx` and `Date` values now outputs its literal content in replacements.
 - Objects containing `NaN` now outputs `NaN` in replacements.
 - `Infinite` and `-Infinity` in JSON objects are replaced with `Number.MAX_VALUE` and `Number.MIN_VALUE`, respectively.
 
