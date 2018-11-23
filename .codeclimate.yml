@@ -1,0 +1,20 @@
+version: "2"
+
+plugins:
+  eslint:
+    enabled: true
+    channel: "eslint-5"
+
+checks:
+  method-complexity:
+    enabled: true
+    config:
+      threshold: 6
+
+exclude_patterns:
+  - "**/*.d.ts"
+  - "**/test/"
+  - "**/node_modules/"
+  - "cov-int/"
+  - "coverage/"
+  - "index.js"

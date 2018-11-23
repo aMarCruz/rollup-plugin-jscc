@@ -147,3 +147,4 @@ const jsccPlugin = function jsccPlugin (options) {
 };
 
 module.exports = jsccPlugin;
+//# sourceMappingURL=index.js.map

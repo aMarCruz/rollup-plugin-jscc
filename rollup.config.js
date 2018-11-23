@@ -19,5 +19,6 @@ export default {
     file: './index.js',
     format: 'cjs',
     interop: false,
+    sourcemap: true,
   },
 }

@@ -5,6 +5,7 @@
 ## Added
 
 - Added TypeScript v3 definitions.
+- Test and badges for [Code Climate](https://codeclimate.com) and [Codecov](https://codecov.io).
 
 ## Changed
 
