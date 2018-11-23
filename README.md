@@ -100,7 +100,7 @@ exclude      | string &vert; Array&lt;string&gt; | [minimatch](https://github.co
 
 ## Directives
 
-Please see the [jscc wiki] (https://github.com/aMarCruz/jscc/wiki) to know about directives used by jscc.
+Please see the [jscc wiki](https://github.com/aMarCruz/jscc/wiki) to know about directives used by jscc.
 
 ## What's New
 
