@@ -69,6 +69,7 @@ const _getJsccOpts = (opts) => ({
   mapHires: opts.mapHires,
   prefixes: opts.prefixes,
   sourceMap: opts.sourceMap,
+  mapContent: opts.mapContent,
   values: Object.assign({}, opts.values),
 });
 
