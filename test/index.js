@@ -265,7 +265,7 @@ describe('Source Map', function () {
       expect(map).to.be.an(Object)
       // file is null
       // expect(map.file).to.be('cc.js')
-      expect(map.sources[0]).to.be('fixtures/cc.js')
+      expect(map.sources[0]).to.match(/test\/fixtures\/cc\.js/)
       expect(map.sourcesContent[0]).to.be(null)
       expect(map.mappings).not.empty()
     })
@@ -283,7 +283,7 @@ describe('Source Map', function () {
       expect(map).to.be.an(Object)
       // file is null
       // expect(map.file).to.be('cc.js')
-      expect(map.sources[0]).to.be('fixtures/cc.js')
+      expect(map.sources[0]).to.match(/test\/fixtures\/cc\.js/)
       expect(map.sourcesContent[0]).to.be('//#if _EXPROT_DEFAULT\nexport function main () {\n  return \'test\'\n}\n/*#else\nexport default function main () {\n  return \'test\'\n}\n//#endif */\n')
       expect(map.mappings).not.empty()
     })
@@ -332,7 +332,7 @@ describe('Source Map', function () {
       ({code, map}) => {
         expect(map.file).to.be('cc.js')
         expect(map.sources[0]).to.be('fixtures/cc.js')
-        expect(map.sourcesContent[0]).to.be('//#if _EXPROT_DEFAULT\nexport function main () {\n  return \'test\'\n}\n/*#else\nexport default function main () {\n  return \'test\'\n}\n//#endif */\n')
+        expect(map.sourcesContent[0]).to.be(null)
         expect(map.mappings).not.empty()
       }
     )

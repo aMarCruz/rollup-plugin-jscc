@@ -112,8 +112,13 @@ const procFile = function (fname, options, code) {
       }
       // Ignore non-string sources
       return typeof source === 'string'
-        ? jscc(source, fname, _getJsccOpts(options))
-        : source
+      ? jscc(source, fname, _getJsccOpts(options))
+      : source
+    }).then(ret =>{
+      if (ret.map) {
+        ret.map.sources[0] = fname;    
+      }
+      return ret
     })
 };
 
