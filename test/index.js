@@ -20,7 +20,7 @@ const fixturePath = function (name) {
     .join(__dirname, 'fixtures', name)
     .replace(/\\/g, '/')
 
-  if (!path.extname(file)) {
+    if (!path.extname(file)) {
     file += '.js'
   }
   return file
@@ -63,7 +63,7 @@ const rollupFile = (filename, outputOptions, jsccOptions) => {
     ],
   })
     .then((bundle) => bundle.generate(outputOptions))
-    .then((result) => result.code)
+    .then((result) => result.output[0])
 }
 
 // The suites =============================================
@@ -90,7 +90,7 @@ describe('rollup-plugin-jscc', function () {
 
   it('predefined `_FILE` value is the relative path of the current dir', function () {
     return rollupFile('def-file-var').then(
-      (code) => expect(code).to.contain('// fixtures/def-file-var.js\n')
+      ({code}) => expect(code).to.contain('// fixtures/def-file-var.js\n')
     )
   })
 
