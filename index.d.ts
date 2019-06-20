@@ -62,7 +62,7 @@ declare namespace jsccPlugin {
 
     /**
      * Include the original source in the sourcemap
-     * @default false
+     * @default true
      */
     mapContent?: boolean;
 
