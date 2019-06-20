@@ -57,7 +57,7 @@ module.exports = {
     'max-depth': [ON, 3],
     'max-len': [1, 120, 4, { ignoreUrls: YES, ignoreRegExpLiterals: YES }],
     'max-lines-per-function': [ON, { max: 25, skipBlankLines: YES, skipComments: YES }],
-    'max-lines': ON,
+    'max-lines': OFF,
     'max-nested-callbacks': [ON, 3],  // default is 10
     'max-params': [ON, 3],
     'max-statements': [ON, 12],
