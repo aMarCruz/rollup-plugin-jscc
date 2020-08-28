@@ -45,7 +45,7 @@ const _getSource = fname =>
  * @param {string} [code] Source
  * @returns {Promise<string>}
  */
-const procFile = function (fname, options, code) {
+const procFile = (fname, options, code) => {
   // Supports transform
   const promise = code != null ? Promise.resolve(code) : _getSource(fname)
 

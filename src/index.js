@@ -10,7 +10,7 @@ const DEFAULT_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.tag']
  * @param {import('..').Options} options User options
  * @returns {import('rollup').Plugin}
  */
-const jsccPlugin = function jsccPlugin (options) {
+export default function jsccPlugin (options) {
   // Get the jscc options from the plugin options
   options = parseOptions(options)
 
@@ -19,18 +19,12 @@ const jsccPlugin = function jsccPlugin (options) {
   if (options.asloader !== false) {
     return {
       name: 'jscc',
-      load(id) {
-        return filter(id) ? procFile(id, options) : null
-      },
+      load: id => (filter(id) ? procFile(id, options) : null),
     }
   }
 
   return {
     name: 'jscc',
-    transform: function (code, id) {
-      return filter(id) ? procFile(id, options, code) : null
-    },
+    transform: (code, id) => (filter(id) ? procFile(id, options, code) : null),
   }
 }
-
-export default jsccPlugin

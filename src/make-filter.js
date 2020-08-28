@@ -7,11 +7,11 @@ import { extname } from 'path'
  * Since `extensions` is not a rollup option, I think is widely used.
  *
  * @param {import('..').Options} opts The user options
- * @param {array|string} exts Default extensions
+ * @param {string|string[]} exts Default extensions
  * @returns {function} Filter function that returns true if a given file
  *    matches the filter.
  */
-const makeFilter = function makeFilter (opts, exts) {
+const makeFilter = (opts, exts) => {
   const _filt = createFilter(opts.include, opts.exclude)
 
   exts = opts.extensions || exts
@@ -24,7 +24,7 @@ const makeFilter = function makeFilter (opts, exts) {
   }
   exts = exts.map(e => (e[0] !== '.' ? `.${e}` : e))
 
-  return id => _filt(id) && exts.indexOf(extname(id)) > -1
+  return id => _filt(id) && exts.includes(extname(id))
 }
 
 export default makeFilter
