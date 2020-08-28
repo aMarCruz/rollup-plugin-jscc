@@ -5,7 +5,7 @@ REQBUILD = "6.9.0"
 
 setup_cover:
 ifeq ($(CURBUILD),$(REQBUILD))
-	@ npm i -g codecov
+	@ npm i -g codecov --no-audit
 	@ curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./cc-test-reporter
 	@ chmod +x ./cc-test-reporter
 	@ ./cc-test-reporter before-build
