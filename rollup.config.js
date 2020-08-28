@@ -1,5 +1,5 @@
-const nodeResolve = require('rollup-plugin-node-resolve')
-const pkg = require('./package.json')
+import nodeResolve from '@rollup/plugin-node-resolve'
+import pkg from './package.json'
 
 const external = Object.keys(pkg.dependencies).concat(['fs', 'path'])
 const banner = `/**
@@ -9,16 +9,16 @@ const banner = `/**
 /* eslint-disable */`
 
 export default {
-  input: './src/index.js',
-  plugins: [
-    nodeResolve(),
-  ],
+  input: pkg.source,
+  plugins: [nodeResolve()],
   external,
   output: {
     banner,
-    file: './index.js',
+    file: pkg.main,
     format: 'cjs',
+    exports: 'auto',
     interop: false,
+    preferConst: true,
     sourcemap: true,
   },
 }
