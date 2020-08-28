@@ -2,6 +2,8 @@ import makeFilter from './make-filter'
 import parseOptions from './parse-options'
 import procFile from './proc-file'
 
+const DEFAULT_EXTENSIONS = ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.tag']
+
 /**
  * rollup-plugin-jscc entry point
  *
@@ -12,7 +14,7 @@ const jsccPlugin = function jsccPlugin (options) {
   // Get the jscc options from the plugin options
   options = parseOptions(options)
 
-  const filter = makeFilter(options, ['.js', '.jsx', '.ts', '.tsx', '.mjs', '.tag'])
+  const filter = makeFilter(options, DEFAULT_EXTENSIONS)
 
   if (options.asloader !== false) {
     return {

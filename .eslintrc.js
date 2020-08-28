@@ -147,7 +147,7 @@ module.exports = {
     'require-atomic-updates': ON,
     'require-await': ON,
     'require-yield': ON,
-    'strict': [ON, 'always'],
+    'strict': [ON, 'never'],
     'symbol-description': ON,
     'unicode-bom': [ON, 'never'],
     'use-isnan': ON,

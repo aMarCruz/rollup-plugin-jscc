@@ -7,15 +7,15 @@ export = jsccPlugin
 declare function jsccPlugin (options: jsccPlugin.Options): import('rollup').Plugin
 
 declare namespace jsccPlugin {
-
+  //
   type QuoteType = 'single' | 'double' | 'both'
 
   interface Options {
     /**
-     * Run the plugin as a lodaer?
+     * If `false`, run the plugin as a `transformer`, otherwise run as `loader`
      * @default true
      */
-    asloader?: boolean;
+    asloader?: boolean
 
     /**
      * String with the type of quotes to escape in the output of strings:
@@ -24,7 +24,7 @@ declare namespace jsccPlugin {
      * It does not affects the output of regexes or strings contained in the
      * JSON output of objects.
      */
-    escapeQuotes?: QuoteType;
+    escapeQuotes?: QuoteType
 
     /**
      * Preserves the empty lines of the directives and blocks that were removed.
@@ -33,38 +33,38 @@ declare namespace jsccPlugin {
      * keeping the line numbering.
      * @default false
      */
-    keepLines?: boolean;
+    keepLines?: boolean
 
     /**
      * Make a hi-res source-map, if `sourceMap:true` (the default).
      * @default true
      */
-    mapHires?: boolean;
+    mapHires?: boolean
 
     /**
      * String, regex or array of strings or regex matching the start of a directive.
      * That is, the characters before the '#', usually the start of comments.
      * @default /\/[/*]|<!--/
      */
-    prefixes?: string | RegExp | Array<string | RegExp>;
+    prefixes?: string | RegExp | Array<string | RegExp>
 
     /**
      * Must include a sourceMap?
      * @default true
      */
-    sourcemap?: boolean;
+    sourcemap?: boolean
 
     /**
      * Alias for `sourcemap`
      * @deprecated
      */
-    sourceMap?: boolean;
+    sourceMap?: boolean
 
     /**
      * Include the original source in the sourcemap
      * @default true
      */
-    mapContent?: boolean;
+    mapContent?: boolean
 
     /**
      * Plain object defining the variables used by jscc during the preprocessing.
@@ -76,28 +76,28 @@ declare namespace jsccPlugin {
      * - `_FILE` : Name of the source file, relative to the current directory
      * - `_VERSION` : The version property in the package.json
      */
-    values?: { [k: string]: any };
+    values?: { [k: string]: any }
 
     /**
      * Array of strings that specifies the file extensions to process.
      *
      * _Note:_ Do not use wildcards here.
-     * @default ['js','jsx','ts','tsx','tag','pug']
+     * @default ['js','jsx','ts','tsx','mjs','tag']
      */
-    extensions?: string | string[];
+    extensions?: string | string[]
 
     /**
      * [minimatch](https://github.com/isaacs/minimatch) or array of minimatch
      * patterns for paths that must be included in the processing.
      * @default (none)
      */
-    include?: string | string[];
+    include?: string | string[]
 
     /**
      * [minimatch](https://github.com/isaacs/minimatch) or array of minimatch
      * patterns for paths that should be ignored.
      * @default (none)
      */
-    exclude?: string | string[];
+    exclude?: string | string[]
   }
 }
