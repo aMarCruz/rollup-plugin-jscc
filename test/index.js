@@ -63,7 +63,7 @@ const rollupFile = (filename, outputOptions, jsccOptions) => {
     ],
   })
     .then((bundle) => bundle.generate(outputOptions))
-    .then((result) => result.code)
+    .then((result) => result.output[0])
 }
 
 // The suites =============================================
@@ -90,7 +90,7 @@ describe('rollup-plugin-jscc', function () {
 
   it('predefined `_FILE` value is the relative path of the current dir', function () {
     return rollupFile('def-file-var').then(
-      (code) => expect(code).to.contain('// fixtures/def-file-var.js\n')
+      ({ code }) => expect(code).to.contain('// fixtures/def-file-var.js\n')
     )
   })
 
@@ -240,6 +240,113 @@ describe('Error handling', function () {
     return rollupFile('no-file').then(
       (res) => expect().fail(`Expected a rejected Promise, but it was resolved to "${res}"`),
       (err) => expect(err).to.be.an(Error)
+    )
+  })
+})
+
+describe('Source Map', function () {
+
+  it('generate sourcemap without cc comments', function () {
+    return jscc({
+      sourceMap: true,
+    }).load(fixturePath('no-cc')).then((res) => {
+      expect(res).to.be.an(Object).and.have.property('map', null)
+    })
+  })
+
+  it('generate sourcemap with cc comments', function () {
+    return jscc({
+      sourceMap: true,
+      mapContent: false,
+    }).load(fixturePath('cc')).then((res) => {
+      expect(res).to.be.an(Object).and.have.property('map')
+
+      const map = res.map
+
+      expect(map).to.be.an(Object)
+      expect(map.sources[0]).to.match(/test\/fixtures\/cc\.js/)
+      expect(map.sourcesContent[0]).to.be(null)
+      expect(map.mappings).not.empty()
+    })
+  })
+
+  it('generate sourcemap with cc comments and map content', function () {
+    return jscc({
+      sourceMap: true,
+      mapContent: true,
+    }).load(fixturePath('cc')).then((res) => {
+      expect(res).to.be.an(Object).and.have.property('map')
+
+      const map = res.map
+
+      expect(map).to.be.an(Object)
+      expect(map.sources[0]).to.match(/test\/fixtures\/cc\.js/)
+      expect(map.sourcesContent[0]).to.be('//#if _EXPROT_DEFAULT\nexport function main () {\n  return \'test\'\n}\n/*#else\nexport default function main () {\n  return \'test\'\n}\n//#endif */\n')
+      expect(map.mappings).not.empty()
+    })
+  })
+
+  it('generate sourcemap without cc comments on rollup', function () {
+    return rollupFile('no-cc', {
+      sourcemap: true,
+    }, {
+      sourceMap: true,
+      mapContent: false,
+    }).then(
+      ({ map }) => {
+        expect(map.file).to.be('no-cc.js')
+        expect(map.sources[0]).to.be('fixtures/no-cc.js')
+        expect(map.sourcesContent[0]).to.be('export function main () {\n  return \'test\'\n}\n')
+        expect(map.mappings).not.empty()
+      }
+    )
+  })
+
+  it('generate sourcemap without cc comments and map content on rollup', function () {
+    return rollupFile('no-cc', {
+      sourcemap: true,
+    }, {
+      sourceMap: true,
+      mapContent: true,
+    }).then(
+      ({ map }) => {
+        expect(map.file).to.be('no-cc.js')
+        expect(map.sources[0]).to.be('fixtures/no-cc.js')
+        expect(map.sourcesContent[0]).to.be('export function main () {\n  return \'test\'\n}\n')
+        expect(map.mappings).not.empty()
+      }
+    )
+  })
+
+  it('generate sourcemap with cc comments on rollup', function () {
+    return rollupFile('cc', {
+      sourcemap: true,
+    }, {
+      sourceMap: true,
+      mapContent: false,
+    }).then(
+      ({ map }) => {
+        expect(map.file).to.be('cc.js')
+        expect(map.sources[0]).to.be('fixtures/cc.js')
+        expect(map.sourcesContent[0]).to.be(null)
+        expect(map.mappings).not.empty()
+      }
+    )
+  })
+
+  it('generate sourcemap with cc comments and map content on rollup', function () {
+    return rollupFile('cc', {
+      sourcemap: true,
+    }, {
+      sourceMap: true,
+      mapContent: true,
+    }).then(
+      ({ map }) => {
+        expect(map.file).to.be('cc.js')
+        expect(map.sources[0]).to.be('fixtures/cc.js')
+        expect(map.sourcesContent[0]).to.be('//#if _EXPROT_DEFAULT\nexport function main () {\n  return \'test\'\n}\n/*#else\nexport default function main () {\n  return \'test\'\n}\n//#endif */\n')
+        expect(map.mappings).not.empty()
+      }
     )
   })
 })

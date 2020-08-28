@@ -61,6 +61,12 @@ declare namespace jsccPlugin {
     sourceMap?: boolean;
 
     /**
+     * Include the original source in the sourcemap
+     * @default true
+     */
+    mapContent?: boolean;
+
+    /**
      * Plain object defining the variables used by jscc during the preprocessing.
      *
      * Each key is a varname matching the regex `_[0-9A-Z][_0-9A-Z]*`, the value

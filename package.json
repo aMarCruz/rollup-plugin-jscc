@@ -11,7 +11,7 @@
     "lint": "eslint --ext js src test",
     "pretest": "rollup -c",
     "test": "nyc mocha",
-    "build": "rm -rf dist/* && rollup -c",
+    "build": "rimraf dist/* && rollup -c",
     "prepublishOnly": "npm run lint && npm test"
   },
   "keywords": [
@@ -40,16 +40,17 @@
     "url": "https://github.com/aMarCruz/rollup-plugin-jscc"
   },
   "dependencies": {
-    "@jsbits/get-package-version": "^1.0.1",
-    "jscc": "^1.1.0",
-    "rollup-pluginutils": "^1.5.2"
+    "@jsbits/get-package-version": "^1.0.3",
+    "jscc": "^1.1.1",
+    "rollup-pluginutils": "^2.8.1"
   },
   "devDependencies": {
     "eslint": "^5.7.0",
     "expect.js": "^0.3.1",
     "mocha": "^5.2.0",
     "nyc": "^13.1.0",
-    "rollup": "^0.67.3",
+    "rimraf": "^2.6.3",
+    "rollup": "^1.0.0",
     "rollup-plugin-node-resolve": "^3.4.0"
   }
 }

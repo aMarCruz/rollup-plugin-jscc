@@ -93,6 +93,7 @@ keepLines    | boolean         | Preserves the empty lines of directives and blo
 mapHires     | boolean         | Make a hi-res source-map, if `sourceMap:true` (the default).<br>**Default** `true`
 prefixes     | string &vert; RegExp &vert;<br>Array&lt;string&vert;RegExp&gt; | The start of a directive. That is the characters before the '#', usually the start of comments.<br>**Default** `['//', '/*', '<!--']` (with one optional space after them).
 sourcemap    | boolean         | Must include a sourcemap?<br>Should be the same value as the property `sourcemap` of the Rollup output.<br>**Default** `true`
+mapContent   | boolean         | Include the original source in the sourcemap, if `sourceMap:true` (the default).<br>**Default** `true`
 values       | object          | Plain object defining the variables used by jscc during the preprocessing.<br>**Default** `{}`
 extensions   | string &vert; Array&lt;string&gt; | Array of strings that specifies the file extensions to process.<br>**Default** `['js', 'jsx', 'ts', 'tsx', 'tag']`
 include      | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that must be included in the processing.

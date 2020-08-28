@@ -69,6 +69,7 @@ const _getJsccOpts = (opts) => ({
   mapHires: opts.mapHires,
   prefixes: opts.prefixes,
   sourceMap: opts.sourceMap,
+  mapContent: opts.mapContent !== false,
   values: Object.assign({}, opts.values),
 });
 
@@ -113,6 +114,21 @@ const procFile = function (fname, options, code) {
       return typeof source === 'string'
         ? jscc(source, fname, _getJsccOpts(options))
         : source
+    }).then((ret) => {
+      /*
+        change the relative source path in the source map to the input file path
+        explanation:
+          rollup will resolve source path through the file's directory absolute path
+          and the source path in the returned source map by the plugin
+
+            new Source(resolve(dirname(module.id), originalSourcemap.sourceRoot || '.', source), sourcesContent[i])
+
+          @see https://github.com/rollup/rollup/blob/v1.15.6/src/utils/collapseSourcemaps.ts#L196
+      */
+      if (ret.map) {
+        ret.map.sources[0] = fname;
+      }
+      return ret
     })
 };
 
