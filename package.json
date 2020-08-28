@@ -6,14 +6,14 @@
   "types": "./index.d.ts",
   "source": "./src/index.js",
   "engines": {
-    "node": ">=6.0"
+    "node": ">=10.12.0"
   },
   "scripts": {
-    "lint": "eslint --ext js src test",
+    "lint": "eslint -f unix --ext js src test",
     "pretest": "rollup -c",
     "test": "nyc mocha",
     "build": "rimraf dist/* && rollup -c",
-    "prepublishOnly": "npm run lint && npm test"
+    "prepublishOnly": "npm run lint && rimraf dist/* && npm test"
   },
   "keywords": [
     "rollup",
@@ -55,5 +55,8 @@
     "rimraf": "~3.0.2",
     "rollup": "^2.26.6",
     "typescript": "3"
+  },
+  "peerDependencies": {
+    "rollup": ">=2"
   }
 }

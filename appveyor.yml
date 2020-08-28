@@ -11,8 +11,8 @@ init:
 environment:
   matrix:
   # node.js
-  - nodejs_version: "6"
-  - nodejs_version: "10"
+  - nodejs_version: "10.12"
+  - nodejs_version: "14"
 
 matrix:
   fast_finish: false
@@ -29,7 +29,7 @@ test_script:
   # Output useful info for debugging.
   - node --version && npm --version
   # run tests
-  - npm test
+  - npm run lint && npm test
 
 # Don't actually build.
 build: off
