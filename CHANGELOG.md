@@ -1,13 +1,39 @@
 # rollup-plugin-jscc changes
 
+## \[1.1.0] - 2020-08-28
+
+### Added
+
+- PrettierX + TypeScript for formating
+- [markdownlint](https://www.npmjs.com/package/markdownlint) and [prettierx](https://github.com/brodybits/prettierx) config files
+- VS Code settings for this project
+
+### Changed
+
+- Update dependencies (using rollup ^2.26) and adjust rollup config
+- Update ESLint config, now PrettierX is used for code formating
+- Update code format to comply with prettierx rules
+- Require Rollup v2 & NodeJS v10 or above
+- Update test (remove NodeJS v6, add v14)
+- Update license
+
+### Fixed
+
+- PR #5: fix source map support - Thanks to @billowz
+  - Upgrade rollup to 1.0.0
+  - Added `mapContent` option
+  - Added `sourcemap` test case
+  - Fix source path in the sourcemap
+- Fix #8: if entry point is named '.mjs' it does not works by @muayyad-alsadi
+
 ## \[1.0.0] - 2018-11-23
 
-## Added
+### Added
 
 - Added TypeScript v3 definitions.
 - Test and badges for [Code Climate](https://codeclimate.com) and [Codecov](https://codecov.io).
 
-## Changed
+### Changed
 
 - Only CommonJS version with dependency on jscc v1.1.0
 - The minimum supported version of node.js is 6
