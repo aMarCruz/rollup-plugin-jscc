@@ -1,11 +1,13 @@
 # rollup-plugin-jscc
 
+<!-- prettier-ignore-start -->
 [![npm Version][npm-badge]][npm-url]
 [![Build Status][build-badge]][build-url]
 [![AppVeyor Status][wbuild-badge]][wbuild-url]
 [![Maintainability][climate-badge]][climate-url]
 [![Test coverage][codecov-badge]][codecov-url]
 [![License][license-badge]][license-url]
+<!-- prettier-ignore-end -->
 
 Conditional compilation and compile-time variable replacement for [Rollup](http://rollupjs.org/).
 
@@ -13,9 +15,9 @@ rollup-plugin-jscc is **not** a transpiler, it is a wrapper of [jscc](https://gi
 
 With jscc, you have:
 
-- Conditional inclusion/exclusion of blocks, based on compile-time variables*
+- Conditional inclusion/exclusion of blocks, based on compile-time variables\*
 - Compile-time variables with all the power of JavaScript expressions
-- Replacement of variables in the sources, by its value at compile-time
+- Replacement of variables in the sources, by its value _at compile-time_
 - Sourcemap support, useful for JavaScript sources.
 - TypeScript v3 definitions
 
@@ -25,93 +27,7 @@ Since jscc is a preprocessor, rollup-plugin-jscc is implemented as a _file loade
 
 _**NOTE**_
 
-v1.0.0 is a complete rewrite and there some changes, please read the specs in [jscc wiki](https://github.com/aMarCruz/jscc/wiki).
-
-Also, removal of non-jscc comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines in addition to the conditional removal of JS comments.
-
-## Install
-
-```bash
-npm i rollup-plugin-jscc -D
-# or
-yarn add rollup-plugin-jscc -D
-```
-
-rollup-plugin-jscc requires node.js v6 or later.
-
-## Usage
-
-rollup.config.js
-
-```js
-import { rollup } from 'rollup';
-import jscc from 'rollup-plugin-jscc';
-
-export default {
-  input: 'src/main.js',
-  plugins: [
-    jscc({
-      values: { _APPNAME: 'My App', _DEBUG: 1 },
-    }),
-  ],
-  //...
-}
-```
-
-in your source:
-
-```js
-/*#if _DEBUG
-import mylib from 'mylib-debug';
-//#else */
-import mylib from 'mylib';
-//#endif
-
-mylib.log('Starting $_APPNAME v$_VERSION...');
-```
-
-output:
-
-```js
-import mylib from 'mylib-debug';
-
-mylib.log('Starting My App v1.0.0...');
-```
-
-That's it.
-
-\* jscc has two predefined memvars: `_FILE` and `_VERSION`, in addition to giving access to the environment variables through the nodejs [`proccess.env`](https://nodejs.org/api/process.html#process_process_env) object.
-
-## Options
-
-Plain JavaScript object, with all properties optional.
-
-Name         | Type            | Description
------------- | --------------- | -----------
-escapeQuotes | string          | String with the type of quotes to escape in the output of strings: 'single', 'double' or 'both'.<br>**Default** nothing.
-keepLines    | boolean         | Preserves the empty lines of directives and blocks that were removed.<br>Use this option with `sourceMap:false` if you are interested only in keeping the line numbering.<br>**Default** `false`
-mapHires     | boolean         | Make a hi-res source-map, if `sourceMap:true` (the default).<br>**Default** `true`
-prefixes     | string &vert; RegExp &vert;<br>Array&lt;string&vert;RegExp&gt; | The start of a directive. That is the characters before the '#', usually the start of comments.<br>**Default** `['//', '/*', '<!--']` (with one optional space after them).
-sourcemap    | boolean         | Must include a sourcemap?<br>Should be the same value as the property `sourcemap` of the Rollup output.<br>**Default** `true`
-mapContent   | boolean         | Include the original source in the sourcemap, if `sourceMap:true` (the default).<br>**Default** `true`
-values       | object          | Plain object defining the variables used by jscc during the preprocessing.<br>**Default** `{}`
-extensions   | string &vert; Array&lt;string&gt; | Array of strings that specifies the file extensions to process.<br>**Default** `['js', 'jsx', 'ts', 'tsx', 'tag']`
-include      | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that must be included in the processing.
-exclude      | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that should be ignored.
-
-## Directives
-
-Please see the [jscc wiki](https://github.com/aMarCruz/jscc/wiki) to know about directives used by jscc.
-
-## What's New
-
-- Only CommonJS version with dependency on jscc v1.1.0
-- The minimum supported version of node.js is 6
-- The predefined extensions were extended to include those of React and TypeScript.
-- `RegEx` and` Date` values now outputs its literal content in replacements.
-- Objects containing `NaN` now outputs `NaN` in replacements.
-- `Infinite` and `-Infinity` in JSON objects are replaced with `Number.MAX_VALUE` and `Number.MIN_VALUE`, respectively.
-- Added TypeScript v3 definitions.
+The removal of non-jscc comments is not included, but you can use [rollup-plugin-cleanup](https://github.com/aMarCruz/rollup-plugin-cleanup), which brings compaction and normalization of lines in addition to the conditional removal of JS comments.
 
 ## Support my Work
 
@@ -123,16 +39,99 @@ Of course, feedback, PRs, and stars are also welcome 🙃
 
 Thanks for your support!
 
-[npm-badge]:      https://img.shields.io/npm/v/rollup-plugin-jscc.svg
-[npm-url]:        https://www.npmjs.com/package/rollup-plugin-jscc
-[build-badge]:    https://img.shields.io/travis/aMarCruz/rollup-plugin-jscc.svg
-[build-url]:      https://travis-ci.org/aMarCruz/rollup-plugin-jscc
-[wbuild-badge]:   https://img.shields.io/appveyor/ci/aMarCruz/rollup-plugin-jscc/master.svg?style=flat-square
-[wbuild-url]:     https://ci.appveyor.com/project/aMarCruz/rollup-plugin-jscc/branch/master
-[climate-badge]:  https://api.codeclimate.com/v1/badges/896211f2169f2c1dcd62/maintainability
-[climate-url]:    https://codeclimate.com/github/aMarCruz/rollup-plugin-jscc/maintainability
-[codecov-badge]:  https://codecov.io/gh/aMarCruz/rollup-plugin-jscc/branch/master/graph/badge.svg
-[codecov-url]:    https://codecov.io/gh/aMarCruz/rollup-plugin-jscc
-[license-badge]:  https://img.shields.io/npm/l/express.svg
-[license-url]:    https://github.com/aMarCruz/rollup-plugin-jscc/blob/master/LICENSE
-[kofi-url]:       https://ko-fi.com/C0C7LF7I
+## Install
+
+```bash
+npm i rollup-plugin-jscc -D
+# or
+yarn add rollup-plugin-jscc -D
+```
+
+rollup-plugin-jscc requires rollup v2.0 and node.js v10.12 or later.
+
+### Usage
+
+rollup.config.js
+
+```js
+import { rollup } from 'rollup'
+import jscc from 'rollup-plugin-jscc'
+
+export default {
+  input: 'src/main.js',
+  plugins: [
+    jscc({
+      values: { _APPNAME: 'My App', _DEBUG: 1 },
+    }),
+  ],
+  //...other options
+}
+```
+
+in your source:
+
+```js
+/*#if _DEBUG
+import mylib from 'mylib-debug';
+//#else */
+import mylib from 'mylib'
+//#endif
+
+mylib.log('Starting $_APPNAME v$_VERSION...')
+```
+
+output:
+
+```js
+import mylib from 'mylib-debug'
+
+mylib.log('Starting My App v1.0.0...')
+```
+
+That's it.
+
+\* jscc has two predefined memvars: `_FILE` and `_VERSION`, in addition to giving access to the environment variables through the nodejs [`proccess.env`](https://nodejs.org/api/process.html#process_process_env) object.
+
+## Options
+
+Plain JavaScript object, with all properties optional.
+
+| Name | Type | Description |
+| --- | --- | --- |
+| asloader | boolean | If `false`, run the plugin as a `transformer`, otherwise run as `loader` (the default). |
+| escapeQuotes | string | String with the type of quotes to escape in the output of strings: 'single', 'double' or 'both'.<br>**Default** nothing. |
+| keepLines | boolean | Preserves the empty lines of directives and blocks that were removed.<br>Use this option with `sourceMap:false` if you are interested only in keeping the line numbering.<br>**Default** `false` |
+| mapHires | boolean | Make a hi-res source-map, if `sourceMap:true` (the default).<br>**Default** `true` |
+| prefixes | string &vert; RegExp &vert;<br>Array&lt;string&vert;RegExp&gt; | The start of a directive. That is the characters before the '#', usually the start of comments.<br>**Default** `['//', '/*', '<!--']` (with one optional space after them). |
+| sourcemap | boolean | Must include a sourcemap?<br>Should be the same value as the property `sourcemap` of the Rollup output.<br>**Default** `true` |
+| mapContent | boolean | Include the original source in the sourcemap, if `sourceMap:true` (the default).<br>**Default** `true` |
+| values | object | Plain object defining the variables used by jscc during the preprocessing.<br>**Default** `{}` |
+| extensions | string &vert; Array&lt;string&gt; | Array of strings that specifies the file extensions to process.<br>**Default** `['js', 'jsx', 'ts', 'tsx', 'mjs', 'tag']` |
+| include | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that must be included in the processing. |
+| exclude | string &vert; Array&lt;string&gt; | [minimatch](https://github.com/isaacs/minimatch) or array of minimatch patterns for paths that should be ignored. |
+
+## Directives
+
+Please see the [jscc wiki](https://github.com/aMarCruz/jscc/wiki) to know about directives used by jscc.
+
+## What's New
+
+Please see the [CHANGELOG](CHANGELOG.md).
+
+## License
+
+The [MIT License](LICENSE)
+
+[npm-badge]: https://img.shields.io/npm/v/rollup-plugin-jscc.svg
+[npm-url]: https://www.npmjs.com/package/rollup-plugin-jscc
+[build-badge]: https://img.shields.io/travis/aMarCruz/rollup-plugin-jscc.svg
+[build-url]: https://travis-ci.org/aMarCruz/rollup-plugin-jscc
+[wbuild-badge]: https://img.shields.io/appveyor/ci/aMarCruz/rollup-plugin-jscc/master.svg?style=flat-square
+[wbuild-url]: https://ci.appveyor.com/project/aMarCruz/rollup-plugin-jscc/branch/master
+[climate-badge]: https://api.codeclimate.com/v1/badges/896211f2169f2c1dcd62/maintainability
+[climate-url]: https://codeclimate.com/github/aMarCruz/rollup-plugin-jscc/maintainability
+[codecov-badge]: https://codecov.io/gh/aMarCruz/rollup-plugin-jscc/branch/master/graph/badge.svg
+[codecov-url]: https://codecov.io/gh/aMarCruz/rollup-plugin-jscc
+[license-badge]: https://img.shields.io/npm/l/express.svg
+[license-url]: https://github.com/aMarCruz/rollup-plugin-jscc/blob/master/LICENSE
+[kofi-url]: https://ko-fi.com/C0C7LF7I
