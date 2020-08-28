@@ -149,8 +149,10 @@ describe('rollup-plugin-jscc', function () {
   })
 
   it('varnames as function-like macros', function () {
-    testFileStr('var-macros', "//('hello jscc!');\n")
-    testFileStr('var-macros', "console.log('hello jscc!');\n", { values: { _DEBUG: 1 } })
+    return Promise.all([
+      testFileStr('var-macros', "//('hello jscc!');\n"),
+      testFileStr('var-macros', "console.log('hello jscc!');\n", { values: { _DEBUG: 1 } }),
+    ])
   })
 
   it('supports Buffer objects', function () {
@@ -162,7 +164,7 @@ describe('rollup-plugin-jscc', function () {
 
   it('ignore sources other than string or Buffer objects', function () {
     const some = new Date()
-    transformer()
+    return transformer()
       .transform(some, 'a.js')
       .then(res => expect(res).to.be(some))
   })
@@ -189,7 +191,7 @@ describe('Options:', function () {
     const res = transformer(opts).transform('//', 'a.js')
     expect(res).to.be(null)
 
-    transformer(opts)
+    return transformer(opts)
       .transform('OK', 'a.txt')
       .then(res => expect(res).to.be.an(Object).and.have.property('code', 'OK'))
   })
@@ -318,9 +320,11 @@ describe('Source Map', function () {
         mapContent: true,
       }
     ).then(({ map }) => {
+      const sourceContent = String(map.sourcesContent[0]).trim().replace(/\s+/g, ' ')
+
       expect(map.file).to.be('no-cc.js')
       expect(map.sources[0]).to.be('fixtures/no-cc.js')
-      expect(map.sourcesContent[0]).to.be("export function main () {\n  return 'test'\n}\n")
+      expect(sourceContent).to.be("export function main () { return 'test' }")
       expect(map.mappings).not.empty()
     })
   })
@@ -354,10 +358,12 @@ describe('Source Map', function () {
         mapContent: true,
       }
     ).then(({ map }) => {
+      const sourceContent = String(map.sourcesContent[0]).trim().replace(/\s+/g, ' ')
+
       expect(map.file).to.be('cc.js')
       expect(map.sources[0]).to.be('fixtures/cc.js')
-      expect(map.sourcesContent[0]).to.be(
-        "//#if _EXPROT_DEFAULT\nexport function main () {\n  return 'test'\n}\n/*#else\nexport default function main () {\n  return 'test'\n}\n//#endif */\n"
+      expect(sourceContent).to.be(
+        "//#if _EXPROT_DEFAULT export function main () { return 'test' } /*#else export default function main () { return 'test' } //#endif */"
       )
       expect(map.mappings).not.empty()
     })
