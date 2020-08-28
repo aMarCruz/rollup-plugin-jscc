@@ -12,20 +12,19 @@ import { extname } from 'path'
  *    matches the filter.
  */
 const makeFilter = function makeFilter (opts, exts) {
-
   const _filt = createFilter(opts.include, opts.exclude)
 
   exts = opts.extensions || exts
   if (!exts || exts === '*') {
-    return _filt   // do not filter extensions
+    return _filt // do not filter extensions
   }
 
   if (!Array.isArray(exts)) {
     exts = [exts]
   }
-  exts = exts.map((e) => (e[0] !== '.' ? `.${e}` : e))
+  exts = exts.map(e => (e[0] !== '.' ? `.${e}` : e))
 
-  return (id) => _filt(id) && exts.indexOf(extname(id)) > -1
+  return id => _filt(id) && exts.indexOf(extname(id)) > -1
 }
 
 export default makeFilter

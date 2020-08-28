@@ -9,16 +9,15 @@ import procFile from './proc-file'
  * @returns {import('rollup').Plugin}
  */
 const jsccPlugin = function jsccPlugin (options) {
-
   // Get the jscc options from the plugin options
   options = parseOptions(options)
 
-  const filter = makeFilter(options, ['.js', '.jsx', 'ts', 'tsx', '.tag'])
+  const filter = makeFilter(options, ['.js', '.jsx', '.ts', '.tsx', '.tag'])
 
   if (options.asloader !== false) {
     return {
       name: 'jscc',
-      load (id) {
+      load(id) {
         return filter(id) ? procFile(id, options) : null
       },
     }

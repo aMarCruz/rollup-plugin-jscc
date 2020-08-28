@@ -7,7 +7,7 @@ import jscc from 'jscc'
  * @param {jscc.Options} opts
  * @returns {jscc.Options}
  */
-const _getJsccOpts = (opts) => ({
+const _getJsccOpts = opts => ({
   escapeQuotes: opts.escapeQuotes,
   keepLines: opts.keepLines,
   mapHires: opts.mapHires,
@@ -24,16 +24,17 @@ const _getJsccOpts = (opts) => ({
  * @param {string} fname Absolute or relative to cwd
  * @returns {Promise<string>}
  */
-const _getSource = (fname) => new Promise((resolve, reject) => {
-  fs.readFile(fname, 'utf8', (error, data) => {
-    // istanbul ignore if
-    if (error) {
-      reject(error)
-    } else {
-      resolve(data)
-    }
+const _getSource = fname =>
+  new Promise((resolve, reject) => {
+    fs.readFile(fname, 'utf8', (error, data) => {
+      // istanbul ignore if
+      if (error) {
+        reject(error)
+      } else {
+        resolve(data)
+      }
+    })
   })
-})
 
 /**
  * Call jscc and returns a Promise that is resolved with a {code,map} object
@@ -49,7 +50,7 @@ const procFile = function (fname, options, code) {
   const promise = code != null ? Promise.resolve(code) : _getSource(fname)
 
   return promise
-    .then((source) => {
+    .then(source => {
       // Supports buffer
       if (typeof Buffer !== 'undefined' && Buffer.isBuffer(source)) {
         source = source.toString()
@@ -58,7 +59,8 @@ const procFile = function (fname, options, code) {
       return typeof source === 'string'
         ? jscc(source, fname, _getJsccOpts(options))
         : source
-    }).then((ret) => {
+    })
+    .then(ret => {
       /*
         change the relative source path in the source map to the input file path
         explanation:
