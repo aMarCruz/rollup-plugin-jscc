@@ -1,5 +1,5 @@
 /**
- * rollup-plugin-jscc v1.0.0
+ * rollup-plugin-jscc v2.0.0
  * @license MIT
  */
 /* eslint-disable */

@@ -1,6 +1,6 @@
 {
   "name": "rollup-plugin-jscc",
-  "version": "1.0.0",
+  "version": "2.0.0",
   "description": "Conditional comments and variable replacement for rollup, based on jscc",
   "main": "./index.js",
   "types": "./index.d.ts",
@@ -20,6 +20,7 @@
     "rollup-plugin",
     "javascript",
     "typescript",
+    "es2019",
     "es2015",
     "es6",
     "modules",
