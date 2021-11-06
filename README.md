@@ -21,7 +21,7 @@ With jscc, you have:
 - Sourcemap support, useful for JavaScript sources.
 - TypeScript v3 definitions
 
-\* This feature allows you the conditional declaration of ES6 imports (See the [example](#example)).
+\* This feature allows you the conditional declaration of ES6 imports (See the [example](#usage)).
 
 Since jscc is a preprocessor, rollup-plugin-jscc is implemented as a _file loader_, so it runs before any transpiler and is invisible to them. This behavior allows you to use it in a wide range of file types but, if necessary, it can be used as a Rollup _transformer_ instead of a loader.
 
